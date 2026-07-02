@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>★ PIXEL PHOTOBOOTH ★</title>
+    <!-- Retro Arcade Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #770737;
+            --pink-light: #F8C8DC;
+            --plum-medium: #673147;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Press Start 2P', monospace;
+            /* Force rigid retro pixelation on scaled graphics */
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--pink-light);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            text-align: center;
+            margin: 15px 0;
+            text-shadow: 4px 4px 0px var(--plum-medium);
+            letter-spacing: -1px;
+        }
+
+        /* Arcade Cabinet Box */
+        .booth-container {
+            background: var(--plum-medium);
+            border: 6px solid var(--pink-light);
+            box-shadow: 8px 8px 0px #000;
+            width: 100%;
+            max-width: 430px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Screen Wrapper */
+        .screen-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            background: #000;
+            border: 4px solid var(--pink-light);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        video {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Normal mirror view */
+        }
+
+        /* Lighting Overlay Layer */
+        .lighting-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Rigid Pixel Frame Layer */
+        .frame-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            box-sizing: border-box;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Dynamic generated CSS frame designs */
+        .frame-classic {
+            border: 16px solid var(--pink-light);
+            border-bottom: 50px solid var(--pink-light);
+        }
+        .frame-classic::after {
+            content: "• PURITY •";
+            position: absolute;
+            bottom: -36px; left: 0; width: 100%;
+            text-align: center; color: var(--bg-dark); font-size: 0.5rem;
+        }
+
+        .frame-playful {
+            border: 12px dashed var(--pink-light);
+            outline: 6px solid var(--bg-dark);
+            outline-offset: -12px;
+        }
+        .frame-playful::before {
+            content: "♥︎CUTE♥︎";
+            position: absolute; top: 10px; left: 10px;
+            background: var(--bg-dark); padding: 4px; font-size: 0.5rem;
+        }
+
+        .frame-cyber {
+            border: 8px double var(--pink-light);
+        }
+        .frame-cyber::after {
+            content: "[ INSERT COIN ]";
+            position: absolute; bottom: 15px; right: 15px;
+            background: #000; color: #ff4081; font-size: 0.45rem; padding: 4px;
+        }
+
+        /* UI Controls */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group {
+            border: 3px solid var(--bg-dark);
+            padding: 8px;
+            background: rgba(0,0,0,0.15);
+        }
+
+        label {
+            font-size: 0.55rem;
+            display: block;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            color: var(--pink-light);
+        }
+
+        select, input[type="file"] {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 2px solid var(--pink-light);
+            color: var(--pink-light);
+            padding: 5px;
+            font-size: 0.55rem;
+            font-family: 'Press Start 2P', monospace;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="file"]::-webkit-file-upload-button {
+            background: var(--pink-light);
+            color: var(--bg-dark);
+            border: 2px solid #fff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.5rem;
+            cursor: pointer;
+        }
+
+        /* Capture Button */
+        .btn {
+            background: #ff4081;
+            color: white;
+            border: 4px solid #fff;
+            border-right-color: #c51162;
+            border-bottom-color: #c51162;
+            padding: 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 0px #000;
+            margin-top: 5px;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0px #000;
+            border-right-color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        /* White Flash Overlay */
+        .flash {
+            position: absolute;
+            top:0; left:0; width:100%; height:100%;
+            background: #fff; opacity: 0; z-index: 10; pointer-events: none;
+        }
+        .flash.active { animation: flashAnim 0.3s ease-out; }
+        @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <h1>★ PIXEL PHOTOBOOTH ★</h1>
+
+    <div class="booth-container">
+        <div class="screen-wrapper">
+            <video id="video" autoplay playsinline muted></video>
+            <div id="light-layer" class="lighting-overlay"></div>
+            <div id="frame-layer" class="frame-overlay"></div>
+            <div id="flash-layer" class="flash"></div>
+        </div>
+
+        <div class="control-panel">
+            <!-- Frame Customization -->
+            <div class="control-group">
+                <label for="frame-select">1. Pixel Frame</label>
+                <select id="frame-select">
+                    <option value="none">No Frame</option>
+                    <option value="classic">Classic Polaroid</option>
+                    <option value="playful">Chunky Dash</option>
+                    <option value="cyber">Retro Cabinet</option>
+                </select>
+                <label style="margin-top: 8px; margin-bottom: 4px;">Custom Template Upload:</label>
+                <input type="file" id="custom-file" accept="image/*">
+            </div>
+
+            <!-- Filters -->
+            <div class="control-group">
+                <label for="filter-select">2. FX Filter</label>
+                <select id="filter-select">
+                    <option value="none">Normal Color</option>
+                    <option value="pixel">8-Bit Gameboy</option>
+                    <option value="cyberpunk">Neon Magenta</option>
+                    <option value="nostalgia">Warm Vintage</option>
+                    <option value="mono">Noir Monochrome</option>
+                </select>
+            </div>
+
+            <!-- Lighting Mode -->
+            <div class="control-group">
+                <label for="light-select">3. Stage Lighting</label>
+                <select id="light-select">
+                    <option value="normal">Default</option>
+                    <option value="bright">Neon Bright</option>
+                    <option value="moody">Moody Dim</option>
+                    <option value="sunset">Blush Sunset</option>
+                </select>
+            </div>
+
+            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
+        </div>
+    </div>
+
+    <!-- Processing Canvas -->
+    <canvas id="hidden-canvas" style="display:none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const lightLayer = document.getElementById('light-layer');
+        const frameLayer = document.getElementById('frame-layer');
+        const flashLayer = document.getElementById('flash-layer');
+        
+        const frameSelect = document.getElementById('frame-select');
+        const customFile = document.getElementById('custom-file');
+        const filterSelect = document.getElementById('filter-select');
+        const lightSelect = document.getElementById('light-select');
+        const snapBtn = document.getElementById('snap-btn');
+        const canvas = document.getElementById('hidden-canvas');
+
+        let userCustomImgSrc = null;
+
+        // Active Camera Stream Init
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: 640, height: 850 },
+                    audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Camera unavailable! Please verify system browser privacy choices.");
+            }
+        }
+
+        // Apply Live Styles
+        function updateBoothFX() {
+            let filterString = "";
+            let lightBg = "transparent";
+
+            // Filters configuration
+            switch(filterSelect.value) {
+                case 'pixel': filterString += "contrast(160%) grayscale(100%) sepia(40%) brightness(95%)"; break;
+                case 'cyberpunk': filterString += "contrast(130%) hue-rotate(130deg) saturate(180%)"; break;
+                case 'nostalgia': filterString += "sepia(50%) contrast(110%) brightness(105%)"; break;
+                case 'mono': filterString += "grayscale(100%) contrast(150%)"; break;
+            }
+
+            // Lighting setup configuration
+            switch(lightSelect.value) {
+                case 'bright': filterString += " brightness(130%)"; break;
+                case 'moody': filterString += " brightness(65%) contrast(125%)"; break;
+                case 'sunset': lightBg = "rgba(248, 200, 220, 0.35)"; filterString += " sepia(15%)"; break;
+            }
+
+            video.style.filter = filterString;
+            lightLayer.style.backgroundColor = lightBg;
+        }
+
+        // Frame selection visual changes
+        frameSelect.addEventListener('change', () => {
+            customFile.value = ""; 
+            userCustomImgSrc = null;
+            frameLayer.className = "frame-overlay"; // reset classes
+            frameLayer.style.backgroundImage = "none";
+
+            const val = frameSelect.value;
+            if(val !== 'none') {
+                frameLayer.classList.add('frame-' + val);
+            }
+        });
+
+        // User Custom Frame Upload Processing
+        customFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    frameLayer.className = "frame-overlay";
+                    frameSelect.value = "none";
+                    userCustomImgSrc = event.target.result;
+                    frameLayer.style.backgroundImage = `url('${userCustomImgSrc}')`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        filterSelect.addEventListener('change', updateBoothFX);
+        lightSelect.addEventListener('change', updateBoothFX);
+
+        // Capture & Compile Image Pipeline
+        snapBtn.addEventListener('click', () => {
+            flashLayer.classList.add('active');
+            setTimeout(() => flashLayer.classList.remove('active'), 300);
+
+            // Give canvas enough time to process variables without browser locking
+            setTimeout(() => {
+                const ctx = canvas.getContext('2d');
+                canvas.width = 640;
+                canvas.height = 850;
+
+                // 1. Draw Mirror Video Image base
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+                ctx.filter = video.style.filter;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Reset Mirror transforms for frames rendering layers
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.filter = "none";
+
+                // 2. Apply Custom Uploaded Frame if exists
+                if (userCustomImgSrc) {
+                    const customImg = new Image();
+                    customImg.onload = function() {
+                        ctx.drawImage(customImg, 0, 0, canvas.width, canvas.height);
+                        executeDownload();
+                    };
+                    customImg.src = userCustomImgSrc;
+                    return; 
+                }
+
+                // 3. Draw programmatic native pixel frames to prevent canvas data taint blocks
+                const frameStyle = frameSelect.value;
+                if(frameStyle !== 'none') {
+                    ctx.lineWidth = 24;
+                    ctx.strokeStyle = "#F8C8DC"; // Palette Pastel Pink
+
+                    if(frameStyle === 'classic') {
+                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+                        ctx.fillStyle = "#F8C8DC";
+                        ctx.fillRect(0, canvas.height - 90, canvas.width, 90);
+                        
+                        ctx.fillStyle = "#770737";
+                        ctx.font = "bold 14px 'Press Start 2P', monospace";
+                        ctx.textAlign = "center";
+                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - 40);
+                    } 
+                    else if(frameStyle === 'playful') {
+                        ctx.lineWidth = 16;
+                        ctx.setLineDash([20, 20]);
+                        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+                        ctx.setLineDash([]); // clear dash
+
+                        ctx.fillStyle = "#770737";
+                        ctx.fillRect(25, 25, 140, 40);
+                        ctx.fillStyle = "#F8C8DC";
+                        ctx.font = "10px 'Press Start 2P', monospace";
+                        ctx.fillText("♥︎CUTE♥︎", 35, 50);
+                    } 
+                    else if(frameStyle === 'cyber') {
+                        ctx.lineWidth = 10;
+                        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+                        ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
+                        
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(canvas.width - 240, canvas.height - 65, 210, 35);
+                        ctx.fillStyle = "#ff4081";
+                        ctx.font = "9px 'Press Start 2P', monospace";
+                        ctx.fillText("[ INSERT COIN ]", canvas.width - 225, canvas.height - 42);
+                    }
+                }
+
+                executeDownload();
+
+                function executeDownload() {
+                    const dataURL = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = `pixel_booth_${Date.now()}.png`;
+                    link.href = dataURL;
+                    link.click();
+                }
+
+            }, 150);
+        });
+
+        window.addEventListener('load', initCamera);
+    </script>
+</body>
+</html>
