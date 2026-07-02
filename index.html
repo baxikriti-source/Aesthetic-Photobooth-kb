@@ -45,29 +45,31 @@
             border: 6px solid var(--pink-light);
             box-shadow: 8px 8px 0px #000;
             width: 100%;
-            max-width: 500px;
+            max-width: 430px;
             padding: 15px;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        /* Screen Wrapper dynamically adapts to camera proportions */
+        /* Screen Wrapper - Strictly 3:4 portrait aspect ratio */
         .screen-wrapper {
             position: relative;
             width: 100%;
+            aspect-ratio: 3 / 4;
             background: #000;
             border: 4px solid var(--pink-light);
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
+        /* Video fills container beautifully without stretching */
         video {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            display: block;
+            height: 100%;
+            object-fit: cover;
             transform: scaleX(-1); /* Normal mirror view */
         }
 
@@ -95,12 +97,12 @@
         /* Dynamic generated CSS frame designs */
         .frame-classic {
             border: 16px solid var(--pink-light);
-            border-bottom: 44px solid var(--pink-light);
+            border-bottom: 50px solid var(--pink-light);
         }
         .frame-classic::after {
             content: "• PURITY •";
             position: absolute;
-            bottom: -32px; left: 0; width: 100%;
+            bottom: -36px; left: 0; width: 100%;
             text-align: center; color: var(--bg-dark); font-size: 0.5rem;
         }
 
@@ -211,8 +213,8 @@
         </div>
 
         <div class="control-panel">
-            <!-- Frame Customization -->
             <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
+            <!-- Frame Customization -->
             <div class="control-group">
                 <label for="frame-select">1. Pixel Frame</label>
                 <select id="frame-select">
@@ -270,20 +272,18 @@
 
         let userCustomImgSrc = null;
 
-        // Active Camera Stream Init
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" },
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } },
                     audio: false
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Camera unavailable! Please verify system browser privacy choices.");
+                alert("Camera unavailable!");
             }
         }
 
-        // Apply Live Styles
         function updateBoothFX() {
             let filterString = "";
             let lightBg = "transparent";
@@ -341,24 +341,52 @@
             setTimeout(() => {
                 const ctx = canvas.getContext('2d');
                 
-                // DYNAMIC FIX: Use the video stream's original native dimensions!
-                const videoWidth = video.videoWidth || 640;
-                const videoHeight = video.videoHeight || 480;
-                
-                canvas.width = videoWidth;
-                canvas.height = videoHeight;
+                // Set output size to a crisp high-res 3:4 aspect ratio (600x800)
+                canvas.width = 600;
+                canvas.height = 800;
 
-                // 1. Draw Mirror Video Image base safely mapped to raw dimensions
+                // CROP MATHS: Figure out how to replicate 'object-fit: cover' from screen
+                const vWidth = video.videoWidth;
+                const vHeight = video.videoHeight;
+                const targetAspect = canvas.width / canvas.height;
+                const videoAspect = vWidth / vHeight;
+
+                let sX, sY, sWidth, sHeight;
+
+                if (videoAspect > targetAspect) {
+                    // Video is too wide (Landscape webcam style)
+                    sHeight = vHeight;
+                    sWidth = vHeight * targetAspect;
+                    sX = (vWidth - sWidth) / 2;
+                    sY = 0;
+                } else {
+                    // Video is too tall (Portrait mobile style)
+                    sWidth = vWidth;
+                    sHeight = vWidth / targetAspect;
+                    sX = 0;
+                    sY = (vHeight - sHeight) / 2;
+                }
+
+                // 1. Draw CROP of video stream with active filters applied
                 ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
+                ctx.scale(-1, 1); // Maintain mirror direction
                 ctx.filter = video.style.filter;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Reset Mirror transforms
+                ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+                
+                // Clear transforms & filters for frame layer
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
 
-                // 2. Apply Custom Uploaded Frame (Stretches perfectly onto your actual dimensions)
+                // 2. Render Live Light Layer if active
+                if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
+                    ctx.fillStyle = lightLayer.style.backgroundColor;
+                    ctx.globalCompositeOperation = "overlay";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.globalCompositeOperation = "source-over"; // Reset blend
+                }
+
+                // 3. Apply Custom Uploaded Frame 
                 if (userCustomImgSrc) {
                     const customImg = new Image();
                     customImg.onload = function() {
@@ -369,54 +397,43 @@
                     return; 
                 }
 
-                // 3. Draw programmatic native pixel frames proportionally scaled
+                // 4. Draw programmatic native pixel frames proportionally scaled
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
-                    const borderThickness = Math.max(10, Math.floor(canvas.width * 0.04));
-                    ctx.lineWidth = borderThickness;
+                    ctx.lineWidth = 24;
                     ctx.strokeStyle = "#F8C8DC"; 
 
                     if(frameStyle === 'classic') {
-                        const bottomBar = Math.max(40, Math.floor(canvas.height * 0.12));
-                        ctx.strokeRect(borderThickness/2, borderThickness/2, canvas.width - borderThickness, canvas.height - borderThickness);
+                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
                         ctx.fillStyle = "#F8C8DC";
-                        ctx.fillRect(0, canvas.height - bottomBar, canvas.width, bottomBar);
+                        ctx.fillRect(0, canvas.height - 70, canvas.width, 70);
                         
                         ctx.fillStyle = "#770737";
-                        const fontSize = Math.max(8, Math.floor(canvas.width * 0.025));
-                        ctx.font = `bold ${fontSize}px 'Press Start 2P', monospace`;
+                        ctx.font = "bold 12px 'Press Start 2P', monospace";
                         ctx.textAlign = "center";
-                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBar / 2) + (fontSize / 2));
+                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - 30);
                     } 
                     else if(frameStyle === 'playful') {
-                        ctx.setLineDash([borderThickness, borderThickness]);
-                        ctx.strokeRect(borderThickness/2, borderThickness/2, canvas.width - borderThickness, canvas.height - borderThickness);
+                        ctx.setLineDash([20, 20]);
+                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
                         ctx.setLineDash([]); 
 
                         ctx.fillStyle = "#770737";
-                        const boxW = Math.floor(canvas.width * 0.3);
-                        const boxH = Math.floor(canvas.height * 0.06);
-                        ctx.fillRect(borderThickness + 5, borderThickness + 5, boxW, boxH);
+                        ctx.fillRect(25, 25, 130, 36);
                         ctx.fillStyle = "#F8C8DC";
-                        const fontSize = Math.max(6, Math.floor(canvas.width * 0.02));
-                        ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
-                        ctx.textAlign = "center";
-                        ctx.fillText("♥︎CUTE♥︎", borderThickness + 5 + (boxW/2), borderThickness + 5 + (boxH/2) + (fontSize/2));
+                        ctx.font = "9px 'Press Start 2P', monospace";
+                        ctx.fillText("♥︎CUTE♥︎", 36, 48);
                     } 
                     else if(frameStyle === 'cyber') {
-                        ctx.lineWidth = Math.max(4, Math.floor(borderThickness / 2));
-                        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-                        ctx.strokeRect(22, 22, canvas.width - 44, canvas.height - 44);
+                        ctx.lineWidth = 10;
+                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+                        ctx.strokeRect(26, 26, canvas.width - 52, canvas.height - 52);
                         
                         ctx.fillStyle = "#000000";
-                        const boxW = Math.floor(canvas.width * 0.4);
-                        const boxH = Math.floor(canvas.height * 0.05);
-                        ctx.fillRect(canvas.width - boxW - 30, canvas.height - boxH - 30, boxW, boxH);
+                        ctx.fillRect(canvas.width - 220, canvas.height - 60, 180, 32);
                         ctx.fillStyle = "#ff4081";
-                        const fontSize = Math.max(6, Math.floor(canvas.width * 0.018));
-                        ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
-                        ctx.textAlign = "center";
-                        ctx.fillText("[ INSERT COIN ]", canvas.width - 30 - (boxW/2), canvas.height - 30 - (boxH/2) + (fontSize/2));
+                        ctx.font = "8px 'Press Start 2P', monospace";
+                        ctx.fillText("[ INSERT COIN ]", canvas.width - 205, canvas.height - 40);
                     }
                 }
 
