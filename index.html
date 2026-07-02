@@ -16,7 +16,6 @@
         * {
             box-sizing: border-box;
             font-family: 'Press Start 2P', monospace;
-            /* Force rigid retro pixelation on scaled graphics */
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
@@ -46,18 +45,17 @@
             border: 6px solid var(--pink-light);
             box-shadow: 8px 8px 0px #000;
             width: 100%;
-            max-width: 430px;
+            max-width: 500px;
             padding: 15px;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        /* Screen Wrapper */
+        /* Screen Wrapper dynamically adapts to camera proportions */
         .screen-wrapper {
             position: relative;
             width: 100%;
-            aspect-ratio: 3 / 4;
             background: #000;
             border: 4px solid var(--pink-light);
             overflow: hidden;
@@ -67,10 +65,9 @@
         }
 
         video {
-            position: absolute;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            display: block;
             transform: scaleX(-1); /* Normal mirror view */
         }
 
@@ -90,19 +87,20 @@
             pointer-events: none;
             z-index: 2;
             box-sizing: border-box;
-            background-size: cover;
+            background-size: 100% 100%;
             background-position: center;
+            background-repeat: no-repeat;
         }
 
         /* Dynamic generated CSS frame designs */
         .frame-classic {
             border: 16px solid var(--pink-light);
-            border-bottom: 50px solid var(--pink-light);
+            border-bottom: 44px solid var(--pink-light);
         }
         .frame-classic::after {
             content: "• PURITY •";
             position: absolute;
-            bottom: -36px; left: 0; width: 100%;
+            bottom: -32px; left: 0; width: 100%;
             text-align: center; color: var(--bg-dark); font-size: 0.5rem;
         }
 
@@ -113,7 +111,7 @@
         }
         .frame-playful::before {
             content: "♥︎CUTE♥︎";
-            position: absolute; top: 10px; left: 10px;
+            position: absolute; top: 14px; left: 14px;
             background: var(--bg-dark); padding: 4px; font-size: 0.5rem;
         }
 
@@ -211,12 +209,10 @@
             <div id="frame-layer" class="frame-overlay"></div>
             <div id="flash-layer" class="flash"></div>
         </div>
-        
 
         <div class="control-panel">
-           
-            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
             <!-- Frame Customization -->
+            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
             <div class="control-group">
                 <label for="frame-select">1. Pixel Frame</label>
                 <select id="frame-select">
@@ -251,6 +247,7 @@
                     <option value="sunset">Blush Sunset</option>
                 </select>
             </div>
+
             
         </div>
     </div>
@@ -277,7 +274,7 @@
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user", width: 640, height: 850 },
+                    video: { facingMode: "user" },
                     audio: false
                 });
                 video.srcObject = stream;
@@ -291,7 +288,6 @@
             let filterString = "";
             let lightBg = "transparent";
 
-            // Filters configuration
             switch(filterSelect.value) {
                 case 'pixel': filterString += "contrast(160%) grayscale(100%) sepia(40%) brightness(95%)"; break;
                 case 'cyberpunk': filterString += "contrast(130%) hue-rotate(130deg) saturate(180%)"; break;
@@ -299,7 +295,6 @@
                 case 'mono': filterString += "grayscale(100%) contrast(150%)"; break;
             }
 
-            // Lighting setup configuration
             switch(lightSelect.value) {
                 case 'bright': filterString += " brightness(130%)"; break;
                 case 'moody': filterString += " brightness(65%) contrast(125%)"; break;
@@ -310,11 +305,10 @@
             lightLayer.style.backgroundColor = lightBg;
         }
 
-        // Frame selection visual changes
         frameSelect.addEventListener('change', () => {
             customFile.value = ""; 
             userCustomImgSrc = null;
-            frameLayer.className = "frame-overlay"; // reset classes
+            frameLayer.className = "frame-overlay"; 
             frameLayer.style.backgroundImage = "none";
 
             const val = frameSelect.value;
@@ -323,7 +317,6 @@
             }
         });
 
-        // User Custom Frame Upload Processing
         customFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -341,28 +334,31 @@
         filterSelect.addEventListener('change', updateBoothFX);
         lightSelect.addEventListener('change', updateBoothFX);
 
-        // Capture & Compile Image Pipeline
         snapBtn.addEventListener('click', () => {
             flashLayer.classList.add('active');
             setTimeout(() => flashLayer.classList.remove('active'), 300);
 
-            // Give canvas enough time to process variables without browser locking
             setTimeout(() => {
                 const ctx = canvas.getContext('2d');
-                canvas.width = 640;
-                canvas.height = 850;
+                
+                // DYNAMIC FIX: Use the video stream's original native dimensions!
+                const videoWidth = video.videoWidth || 640;
+                const videoHeight = video.videoHeight || 480;
+                
+                canvas.width = videoWidth;
+                canvas.height = videoHeight;
 
-                // 1. Draw Mirror Video Image base
+                // 1. Draw Mirror Video Image base safely mapped to raw dimensions
                 ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
                 ctx.filter = video.style.filter;
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Reset Mirror transforms for frames rendering layers
+                // Reset Mirror transforms
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
 
-                // 2. Apply Custom Uploaded Frame if exists
+                // 2. Apply Custom Uploaded Frame (Stretches perfectly onto your actual dimensions)
                 if (userCustomImgSrc) {
                     const customImg = new Image();
                     customImg.onload = function() {
@@ -373,44 +369,54 @@
                     return; 
                 }
 
-                // 3. Draw programmatic native pixel frames to prevent canvas data taint blocks
+                // 3. Draw programmatic native pixel frames proportionally scaled
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
-                    ctx.lineWidth = 24;
-                    ctx.strokeStyle = "#F8C8DC"; // Palette Pastel Pink
+                    const borderThickness = Math.max(10, Math.floor(canvas.width * 0.04));
+                    ctx.lineWidth = borderThickness;
+                    ctx.strokeStyle = "#F8C8DC"; 
 
                     if(frameStyle === 'classic') {
-                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+                        const bottomBar = Math.max(40, Math.floor(canvas.height * 0.12));
+                        ctx.strokeRect(borderThickness/2, borderThickness/2, canvas.width - borderThickness, canvas.height - borderThickness);
                         ctx.fillStyle = "#F8C8DC";
-                        ctx.fillRect(0, canvas.height - 90, canvas.width, 90);
+                        ctx.fillRect(0, canvas.height - bottomBar, canvas.width, bottomBar);
                         
                         ctx.fillStyle = "#770737";
-                        ctx.font = "bold 14px 'Press Start 2P', monospace";
+                        const fontSize = Math.max(8, Math.floor(canvas.width * 0.025));
+                        ctx.font = `bold ${fontSize}px 'Press Start 2P', monospace`;
                         ctx.textAlign = "center";
-                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - 40);
+                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBar / 2) + (fontSize / 2));
                     } 
                     else if(frameStyle === 'playful') {
-                        ctx.lineWidth = 16;
-                        ctx.setLineDash([20, 20]);
-                        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-                        ctx.setLineDash([]); // clear dash
+                        ctx.setLineDash([borderThickness, borderThickness]);
+                        ctx.strokeRect(borderThickness/2, borderThickness/2, canvas.width - borderThickness, canvas.height - borderThickness);
+                        ctx.setLineDash([]); 
 
                         ctx.fillStyle = "#770737";
-                        ctx.fillRect(25, 25, 140, 40);
+                        const boxW = Math.floor(canvas.width * 0.3);
+                        const boxH = Math.floor(canvas.height * 0.06);
+                        ctx.fillRect(borderThickness + 5, borderThickness + 5, boxW, boxH);
                         ctx.fillStyle = "#F8C8DC";
-                        ctx.font = "10px 'Press Start 2P', monospace";
-                        ctx.fillText("♥︎CUTE♥︎", 35, 50);
+                        const fontSize = Math.max(6, Math.floor(canvas.width * 0.02));
+                        ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
+                        ctx.textAlign = "center";
+                        ctx.fillText("♥︎CUTE♥︎", borderThickness + 5 + (boxW/2), borderThickness + 5 + (boxH/2) + (fontSize/2));
                     } 
                     else if(frameStyle === 'cyber') {
-                        ctx.lineWidth = 10;
+                        ctx.lineWidth = Math.max(4, Math.floor(borderThickness / 2));
                         ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-                        ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
+                        ctx.strokeRect(22, 22, canvas.width - 44, canvas.height - 44);
                         
                         ctx.fillStyle = "#000000";
-                        ctx.fillRect(canvas.width - 240, canvas.height - 65, 210, 35);
+                        const boxW = Math.floor(canvas.width * 0.4);
+                        const boxH = Math.floor(canvas.height * 0.05);
+                        ctx.fillRect(canvas.width - boxW - 30, canvas.height - boxH - 30, boxW, boxH);
                         ctx.fillStyle = "#ff4081";
-                        ctx.font = "9px 'Press Start 2P', monospace";
-                        ctx.fillText("[ INSERT COIN ]", canvas.width - 225, canvas.height - 42);
+                        const fontSize = Math.max(6, Math.floor(canvas.width * 0.018));
+                        ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
+                        ctx.textAlign = "center";
+                        ctx.fillText("[ INSERT COIN ]", canvas.width - 30 - (boxW/2), canvas.height - 30 - (boxH/2) + (fontSize/2));
                     }
                 }
 
