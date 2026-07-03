@@ -84,6 +84,7 @@
             mix-blend-mode: overlay;
             pointer-events: none;
             z-index: 1;
+            transition: background-color 0.2s ease;
         }
 
         /* Rigid Pixel Frame Layer */
@@ -172,6 +173,18 @@
             cursor: pointer;
         }
 
+        /* Top Bar Button Rows */
+        .utility-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .utility-row .btn {
+            flex: 1;
+            margin-top: 0;
+        }
+
         /* Capture & Utilities Buttons */
         .btn {
             background: #ff4081;
@@ -199,8 +212,7 @@
             color: var(--bg-dark);
             border-color: #fff var(--bg-dark) var(--bg-dark) #fff;
             padding: 8px;
-            font-size: 0.6rem;
-            margin-top: 0;
+            font-size: 0.55rem;
             margin-bottom: 5px;
         }
 
@@ -220,7 +232,6 @@
 
     <div class="booth-container">
         <div class="screen-wrapper">
-            <!-- Defaults with mirror-view active for front camera -->
             <video id="video" class="mirror-view" autoplay playsinline muted></video>
             <div id="light-layer" class="lighting-overlay"></div>
             <div id="frame-layer" class="frame-overlay"></div>
@@ -228,8 +239,11 @@
         </div>
 
         <div class="control-panel">
-            <!-- Flip Utility Button -->
-            <button id="flip-btn" class="btn btn-secondary">🔄 FLIP CAMERA</button>
+            <!-- Utility Toggles -->
+            <div class="utility-row">
+                <button id="flip-btn" class="btn btn-secondary">🔄 FLIP CAM</button>
+                <button id="flash-btn" class="btn btn-secondary">⚡ FLASH: ON</button>
+            </div>
 
             <!-- Frame Customization -->
             <div class="control-group">
@@ -256,13 +270,17 @@
                 </select>
             </div>
 
-            <!-- Lighting Mode -->
+            <!-- Lighting Mode (With added colors!) -->
             <div class="control-group">
                 <label for="light-select">3. Stage Lighting</label>
                 <select id="light-select">
-                    <option value="normal">Default</option>
+                    <option value="normal">Default Light</option>
                     <option value="bright">Neon Bright</option>
                     <option value="moody">Moody Dim</option>
+                    <option value="pink">Pastel Pink</option>
+                    <option value="red">Cyber Red</option>
+                    <option value="blue">Electric Blue</option>
+                    <option value="green">Acid Green</option>
                     <option value="sunset">Blush Sunset</option>
                 </select>
             </div>
@@ -281,6 +299,7 @@
         const flashLayer = document.getElementById('flash-layer');
         
         const flipBtn = document.getElementById('flip-btn');
+        const flashBtn = document.getElementById('flash-btn');
         const frameSelect = document.getElementById('frame-select');
         const customFile = document.getElementById('custom-file');
         const filterSelect = document.getElementById('filter-select');
@@ -289,12 +308,11 @@
         const canvas = document.getElementById('hidden-canvas');
 
         let currentStream = null;
-        let useFacingMode = "user"; // Start with front camera
+        let useFacingMode = "user"; 
+        let flashEnabled = true;
         let userCustomImgSrc = null;
 
-        // Active Camera Stream handling (Dynamic Toggle built-in)
         async function initCamera() {
-            // Stop any existing tracks to cleanly free up the hardware
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
             }
@@ -308,21 +326,24 @@
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
 
-                // Adjust mirror effect depending on which lens is active
                 if (useFacingMode === "user") {
                     video.classList.add('mirror-view');
                 } else {
                     video.classList.remove('mirror-view');
                 }
             } catch (err) {
-                alert("Camera unavailable or permission denied!");
+                alert("Camera unavailable!");
             }
         }
 
-        // Camera Flip switch implementation
         flipBtn.addEventListener('click', () => {
             useFacingMode = (useFacingMode === "user") ? "environment" : "user";
             initCamera();
+        });
+
+        flashBtn.addEventListener('click', () => {
+            flashEnabled = !flashEnabled;
+            flashBtn.textContent = flashEnabled ? "⚡ FLASH: ON" : "❌ FLASH: OFF";
         });
 
         function updateBoothFX() {
@@ -339,7 +360,11 @@
             switch(lightSelect.value) {
                 case 'bright': filterString += " brightness(130%)"; break;
                 case 'moody': filterString += " brightness(65%) contrast(125%)"; break;
-                case 'sunset': lightBg = "rgba(248, 200, 220, 0.35)"; filterString += " sepia(15%)"; break;
+                case 'pink': lightBg = "rgba(248, 200, 220, 0.4)"; break;
+                case 'red': lightBg = "rgba(255, 0, 85, 0.4)"; break;
+                case 'blue': lightBg = "rgba(0, 150, 255, 0.4)"; break;
+                case 'green': lightBg = "rgba(0, 255, 100, 0.35)"; break;
+                case 'sunset': lightBg = "rgba(255, 140, 0, 0.3) "; filterString += " sepia(25%)"; break;
             }
 
             video.style.filter = filterString;
@@ -376,12 +401,13 @@
         lightSelect.addEventListener('change', updateBoothFX);
 
         snapBtn.addEventListener('click', () => {
-            flashLayer.classList.add('active');
-            setTimeout(() => flashLayer.classList.remove('active'), 300);
+            if (flashEnabled) {
+                flashLayer.classList.add('active');
+                setTimeout(() => flashLayer.classList.remove('active'), 300);
+            }
 
             setTimeout(() => {
                 const ctx = canvas.getContext('2d');
-                
                 canvas.width = 600;
                 canvas.height = 800;
 
@@ -404,7 +430,6 @@
                     sY = (vHeight - sHeight) / 2;
                 }
 
-                // Handle mirroring ONLY if using the front/selfie camera ('user')
                 if (useFacingMode === "user") {
                     ctx.translate(canvas.width, 0);
                     ctx.scale(-1, 1);
@@ -413,11 +438,10 @@
                 ctx.filter = video.style.filter;
                 ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
                 
-                // Clear transforms & filters
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
 
-                // 2. Render Live Light Layer
+                // Render Live Light Overlay Layer onto canvas output
                 if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
                     ctx.fillStyle = lightLayer.style.backgroundColor;
                     ctx.globalCompositeOperation = "overlay";
@@ -425,7 +449,7 @@
                     ctx.globalCompositeOperation = "source-over";
                 }
 
-                // 3. Apply Custom Uploaded Frame
+                // Apply Custom Uploaded Frame
                 if (userCustomImgSrc) {
                     const customImg = new Image();
                     customImg.onload = function() {
@@ -436,7 +460,7 @@
                     return; 
                 }
 
-                // 4. Draw programmatic native pixel frames
+                // Draw standard pixel frames
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
                     ctx.lineWidth = 24;
@@ -446,7 +470,6 @@
                         ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
                         ctx.fillStyle = "#F8C8DC";
                         ctx.fillRect(0, canvas.height - 70, canvas.width, 70);
-                        
                         ctx.fillStyle = "#770737";
                         ctx.font = "bold 12px 'Press Start 2P', monospace";
                         ctx.textAlign = "center";
@@ -456,7 +479,6 @@
                         ctx.setLineDash([20, 20]);
                         ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
                         ctx.setLineDash([]); 
-
                         ctx.fillStyle = "#770737";
                         ctx.fillRect(25, 25, 130, 36);
                         ctx.fillStyle = "#F8C8DC";
@@ -467,7 +489,6 @@
                         ctx.lineWidth = 10;
                         ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
                         ctx.strokeRect(26, 26, canvas.width - 52, canvas.height - 52);
-                        
                         ctx.fillStyle = "#000000";
                         ctx.fillRect(canvas.width - 220, canvas.height - 60, 180, 32);
                         ctx.fillStyle = "#ff4081";
@@ -486,7 +507,7 @@
                     link.click();
                 }
 
-            }, 150);
+            }, flashEnabled ? 150 : 50);
         });
 
         window.addEventListener('load', initCamera);
