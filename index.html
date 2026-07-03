@@ -222,7 +222,7 @@
             top:0; left:0; width:100%; height:100%;
             background: #fff; opacity: 0; z-index: 10; pointer-events: none;
         }
-        .flash.active { animation: flashAnim 0.3s ease-out; }
+        .flash.active { animation: flashAnim 0.4s ease-out; }
         @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
     </style>
 </head>
@@ -308,6 +308,7 @@
         const canvas = document.getElementById('hidden-canvas');
 
         let currentStream = null;
+        let videoTrack = null;
         let useFacingMode = "user"; 
         let flashEnabled = true;
         let userCustomImgSrc = null;
@@ -325,6 +326,7 @@
                 
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
+                videoTrack = currentStream.getVideoTracks()[0];
 
                 if (useFacingMode === "user") {
                     video.classList.add('mirror-view');
@@ -400,13 +402,31 @@
         filterSelect.addEventListener('change', updateBoothFX);
         lightSelect.addEventListener('change', updateBoothFX);
 
-        snapBtn.addEventListener('click', () => {
-            if (flashEnabled) {
-                flashLayer.classList.add('active');
-                setTimeout(() => flashLayer.classList.remove('active'), 300);
+        // Capture Action
+        snapBtn.addEventListener('click', async () => {
+            let hardwareTorchApplied = false;
+
+            // 1. Check if hardware back camera flash can be activated
+            if (flashEnabled && useFacingMode === "environment" && videoTrack) {
+                try {
+                    const capabilities = videoTrack.getCapabilities();
+                    if (capabilities.torch) {
+                        await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
+                        hardwareTorchApplied = true;
+                    }
+                } catch (e) {
+                    console.log("Hardware torch not accessible directly via constraints.");
+                }
             }
 
-            setTimeout(() => {
+            // 2. Trigger screen flash UI layer (always runs for front cam, fallback for back)
+            if (flashEnabled) {
+                flashLayer.classList.add('active');
+                setTimeout(() => flashLayer.classList.remove('active'), 400);
+            }
+
+            // Wait a small delay for exposure to stabilize with the flash
+            setTimeout(async () => {
                 const ctx = canvas.getContext('2d');
                 canvas.width = 600;
                 canvas.height = 800;
@@ -440,6 +460,13 @@
                 
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
+
+                // Turn off physical hardware flash immediately after drawing frame
+                if (hardwareTorchApplied && videoTrack) {
+                    try {
+                        await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
+                    } catch(err) {}
+                }
 
                 // Render Live Light Overlay Layer onto canvas output
                 if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
@@ -507,7 +534,7 @@
                     link.click();
                 }
 
-            }, flashEnabled ? 150 : 50);
+            }, flashEnabled ? 250 : 50);
         });
 
         window.addEventListener('load', initCamera);
