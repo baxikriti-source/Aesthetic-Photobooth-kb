@@ -70,7 +70,11 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scaleX(-1); /* Normal mirror view */
+        }
+
+        /* Mirror mode class applied ONLY when using user/front camera */
+        .mirror-view {
+            transform: scaleX(-1);
         }
 
         /* Lighting Overlay Layer */
@@ -168,7 +172,7 @@
             cursor: pointer;
         }
 
-        /* Capture Button */
+        /* Capture & Utilities Buttons */
         .btn {
             background: #ff4081;
             color: white;
@@ -190,6 +194,16 @@
             border-bottom-color: #fff;
         }
 
+        .btn-secondary {
+            background: var(--pink-light);
+            color: var(--bg-dark);
+            border-color: #fff var(--bg-dark) var(--bg-dark) #fff;
+            padding: 8px;
+            font-size: 0.6rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
         /* White Flash Overlay */
         .flash {
             position: absolute;
@@ -206,14 +220,17 @@
 
     <div class="booth-container">
         <div class="screen-wrapper">
-            <video id="video" autoplay playsinline muted></video>
+            <!-- Defaults with mirror-view active for front camera -->
+            <video id="video" class="mirror-view" autoplay playsinline muted></video>
             <div id="light-layer" class="lighting-overlay"></div>
             <div id="frame-layer" class="frame-overlay"></div>
             <div id="flash-layer" class="flash"></div>
         </div>
 
         <div class="control-panel">
-            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
+            <!-- Flip Utility Button -->
+            <button id="flip-btn" class="btn btn-secondary">🔄 FLIP CAMERA</button>
+
             <!-- Frame Customization -->
             <div class="control-group">
                 <label for="frame-select">1. Pixel Frame</label>
@@ -250,7 +267,7 @@
                 </select>
             </div>
 
-            
+            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
         </div>
     </div>
 
@@ -263,6 +280,7 @@
         const frameLayer = document.getElementById('frame-layer');
         const flashLayer = document.getElementById('flash-layer');
         
+        const flipBtn = document.getElementById('flip-btn');
         const frameSelect = document.getElementById('frame-select');
         const customFile = document.getElementById('custom-file');
         const filterSelect = document.getElementById('filter-select');
@@ -270,19 +288,42 @@
         const snapBtn = document.getElementById('snap-btn');
         const canvas = document.getElementById('hidden-canvas');
 
+        let currentStream = null;
+        let useFacingMode = "user"; // Start with front camera
         let userCustomImgSrc = null;
 
+        // Active Camera Stream handling (Dynamic Toggle built-in)
         async function initCamera() {
+            // Stop any existing tracks to cleanly free up the hardware
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } },
+                const constraints = {
+                    video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
                     audio: false
-                });
-                video.srcObject = stream;
+                };
+                
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+
+                // Adjust mirror effect depending on which lens is active
+                if (useFacingMode === "user") {
+                    video.classList.add('mirror-view');
+                } else {
+                    video.classList.remove('mirror-view');
+                }
             } catch (err) {
-                alert("Camera unavailable!");
+                alert("Camera unavailable or permission denied!");
             }
         }
+
+        // Camera Flip switch implementation
+        flipBtn.addEventListener('click', () => {
+            useFacingMode = (useFacingMode === "user") ? "environment" : "user";
+            initCamera();
+        });
 
         function updateBoothFX() {
             let filterString = "";
@@ -341,11 +382,9 @@
             setTimeout(() => {
                 const ctx = canvas.getContext('2d');
                 
-                // Set output size to a crisp high-res 3:4 aspect ratio (600x800)
                 canvas.width = 600;
                 canvas.height = 800;
 
-                // CROP MATHS: Figure out how to replicate 'object-fit: cover' from screen
                 const vWidth = video.videoWidth;
                 const vHeight = video.videoHeight;
                 const targetAspect = canvas.width / canvas.height;
@@ -354,39 +393,39 @@
                 let sX, sY, sWidth, sHeight;
 
                 if (videoAspect > targetAspect) {
-                    // Video is too wide (Landscape webcam style)
                     sHeight = vHeight;
                     sWidth = vHeight * targetAspect;
                     sX = (vWidth - sWidth) / 2;
                     sY = 0;
                 } else {
-                    // Video is too tall (Portrait mobile style)
                     sWidth = vWidth;
                     sHeight = vWidth / targetAspect;
                     sX = 0;
                     sY = (vHeight - sHeight) / 2;
                 }
 
-                // 1. Draw CROP of video stream with active filters applied
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1); // Maintain mirror direction
-                ctx.filter = video.style.filter;
+                // Handle mirroring ONLY if using the front/selfie camera ('user')
+                if (useFacingMode === "user") {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
                 
+                ctx.filter = video.style.filter;
                 ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
                 
-                // Clear transforms & filters for frame layer
+                // Clear transforms & filters
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
 
-                // 2. Render Live Light Layer if active
+                // 2. Render Live Light Layer
                 if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
                     ctx.fillStyle = lightLayer.style.backgroundColor;
                     ctx.globalCompositeOperation = "overlay";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.globalCompositeOperation = "source-over"; // Reset blend
+                    ctx.globalCompositeOperation = "source-over";
                 }
 
-                // 3. Apply Custom Uploaded Frame 
+                // 3. Apply Custom Uploaded Frame
                 if (userCustomImgSrc) {
                     const customImg = new Image();
                     customImg.onload = function() {
@@ -397,7 +436,7 @@
                     return; 
                 }
 
-                // 4. Draw programmatic native pixel frames proportionally scaled
+                // 4. Draw programmatic native pixel frames
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
                     ctx.lineWidth = 24;
