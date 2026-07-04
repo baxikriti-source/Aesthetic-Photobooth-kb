@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>★ PIXI PHOTOBOOTH ★</title>
+    <title>★ PIXEL PHOTOBOOTH ★</title>
     <!-- Retro Arcade Font -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
@@ -39,7 +39,7 @@
             letter-spacing: -1px;
         }
 
-        /* Arcade Cabinet Box */
+        /* Mobile First Layout (Stacked like before) */
         .booth-container {
             background: var(--plum-medium);
             border: 6px solid var(--pink-light);
@@ -50,6 +50,24 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+        }
+
+        /* RESPONSIVE LAYOUT FOR TABS & LAPTOPS (Matches layout in image_851b38.png) */
+        @media (min-width: 768px) {
+            .booth-container {
+                max-width: 900px;
+                flex-direction: row; /* Side-by-side columns */
+                align-items: stretch;
+            }
+
+            .screen-wrapper {
+                flex: 1.6; /* Camera gets the majority of the landscape width */
+            }
+
+            .control-panel {
+                flex: 1; /* Control panel scales to the right side perfectly */
+                justify-content: space-between;
+            }
         }
 
         /* Screen Wrapper - Strictly 3:4 portrait aspect ratio */
@@ -228,9 +246,10 @@
 </head>
 <body>
 
-    <h1>★ PIXI PHOTOBOOTH ★</h1>
+    <h1>★ PIXEL PHOTOBOOTH ★</h1>
 
     <div class="booth-container">
+        <!-- LEFT PANEL (Desktop) / TOP PANEL (Mobile) -->
         <div class="screen-wrapper">
             <video id="video" class="mirror-view" autoplay playsinline muted></video>
             <div id="light-layer" class="lighting-overlay"></div>
@@ -238,18 +257,17 @@
             <div id="flash-layer" class="flash"></div>
         </div>
 
+        <!-- RIGHT PANEL (Desktop) / BOTTOM PANEL (Mobile) -->
         <div class="control-panel">
-            
             <!-- Utility Toggles -->
             <div class="utility-row">
-                <button id="flip-btn" class="btn btn-secondary"> ↳↰ FLIP CAM </button>
-                <button id="flash-btn" class="btn btn-secondary"> ⚡︎ FLASH: ON </button>
+                <button id="flip-btn" class="btn btn-secondary">🔄 FLIP CAM</button>
+                <button id="flash-btn" class="btn btn-secondary">⚡ FLASH: ON</button>
             </div>
-            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
-            
+
             <!-- Frame Customization -->
             <div class="control-group">
-                <label for="frame-select"> Pixel Frame</label>
+                <label for="frame-select">1. Pixel Frame</label>
                 <select id="frame-select">
                     <option value="none">No Frame</option>
                     <option value="classic">Classic Polaroid</option>
@@ -262,7 +280,7 @@
 
             <!-- Filters -->
             <div class="control-group">
-                <label for="filter-select"> FX Filter</label>
+                <label for="filter-select">2. FX Filter</label>
                 <select id="filter-select">
                     <option value="none">Normal Color</option>
                     <option value="pixel">8-Bit Gameboy</option>
@@ -272,9 +290,9 @@
                 </select>
             </div>
 
-            <!-- Lighting Mode (With added colors!) -->
+            <!-- Lighting Mode -->
             <div class="control-group">
-                <label for="light-select"> Stage Lighting</label>
+                <label for="light-select">3. Stage Lighting</label>
                 <select id="light-select">
                     <option value="normal">Default Light</option>
                     <option value="bright">Neon Bright</option>
@@ -287,7 +305,7 @@
                 </select>
             </div>
 
-            
+            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
         </div>
     </div>
 
@@ -308,20 +326,19 @@
         const lightSelect = document.getElementById('light-select');
         const snapBtn = document.getElementById('snap-btn');
         const canvas = document.getElementById('hidden-canvas');
-        
+
         let currentStream = null;
         let videoTrack = null;
         let useFacingMode = "user"; 
         let flashEnabled = true;
         let userCustomImgSrc = null;
-        
+
         async function initCamera() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
             }
-        
+
             try {
-                // Request the hardware stream with optimal aspect bounds
                 const constraints = {
                     video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
                     audio: false
@@ -330,7 +347,7 @@
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
                 videoTrack = currentStream.getVideoTracks()[0];
-        
+
                 if (useFacingMode === "user") {
                     video.classList.add('mirror-view');
                 } else {
@@ -340,28 +357,28 @@
                 alert("Camera unavailable!");
             }
         }
-        
+
         flipBtn.addEventListener('click', () => {
             useFacingMode = (useFacingMode === "user") ? "environment" : "user";
             initCamera();
         });
-        
+
         flashBtn.addEventListener('click', () => {
             flashEnabled = !flashEnabled;
             flashBtn.textContent = flashEnabled ? "⚡ FLASH: ON" : "❌ FLASH: OFF";
         });
-        
+
         function updateBoothFX() {
             let filterString = "";
             let lightBg = "transparent";
-        
+
             switch(filterSelect.value) {
                 case 'pixel': filterString += "contrast(160%) grayscale(100%) sepia(40%) brightness(95%)"; break;
                 case 'cyberpunk': filterString += "contrast(130%) hue-rotate(130deg) saturate(180%)"; break;
                 case 'nostalgia': filterString += "sepia(50%) contrast(110%) brightness(105%)"; break;
                 case 'mono': filterString += "grayscale(100%) contrast(150%)"; break;
             }
-        
+
             switch(lightSelect.value) {
                 case 'bright': filterString += " brightness(130%)"; break;
                 case 'moody': filterString += " brightness(65%) contrast(125%)"; break;
@@ -371,23 +388,23 @@
                 case 'green': lightBg = "rgba(0, 255, 100, 0.35)"; break;
                 case 'sunset': lightBg = "rgba(255, 140, 0, 0.3) "; filterString += " sepia(25%)"; break;
             }
-        
+
             video.style.filter = filterString;
             lightLayer.style.backgroundColor = lightBg;
         }
-        
+
         frameSelect.addEventListener('change', () => {
             customFile.value = ""; 
             userCustomImgSrc = null;
             frameLayer.className = "frame-overlay"; 
             frameLayer.style.backgroundImage = "none";
-        
+
             const val = frameSelect.value;
             if(val !== 'none') {
                 frameLayer.classList.add('frame-' + val);
             }
         });
-        
+
         customFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -401,23 +418,18 @@
                 reader.readAsDataURL(file);
             }
         });
-        
+
         filterSelect.addEventListener('change', updateBoothFX);
         lightSelect.addEventListener('change', updateBoothFX);
-        
-        // Capture Action
+
         snapBtn.addEventListener('click', async () => {
             let nativeFlashTriggered = false;
-        
-            // Direct Photo Flash protocol for rear hardware cameras
+
             if (flashEnabled && useFacingMode === "environment" && videoTrack) {
                 try {
-                    // Check native capture specs directly
                     if ('ImageCapture' in window) {
                         const captureDevice = new ImageCapture(videoTrack);
                         const photoCapabilities = await captureDevice.getPhotoCapabilities();
-                        
-                        // If device supports auto/always flash protocols, override stream mode
                         if (photoCapabilities.fillLightMode && photoCapabilities.fillLightMode.includes('flash')) {
                             await videoTrack.applyConstraints({
                                 advanced: [{ fillLightMode: "flash" }, { torch: true }]
@@ -426,33 +438,30 @@
                         }
                     }
                 } catch (e) {
-                    // Fallback to legacy torch approach if ImageCapture is disabled
                     try {
                         await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
                         nativeFlashTriggered = true;
                     } catch(legacyErr){}
                 }
             }
-        
-            // Secondary layer interface flash response
+
             if (flashEnabled) {
                 flashLayer.classList.add('active');
                 setTimeout(() => flashLayer.classList.remove('active'), 400);
             }
-        
-            // Extended timeout delay so target device sensor lens balances exposure perfectly
+
             setTimeout(async () => {
                 const ctx = canvas.getContext('2d');
                 canvas.width = 600;
                 canvas.height = 800;
-        
+
                 const vWidth = video.videoWidth;
                 const vHeight = video.videoHeight;
                 const targetAspect = canvas.width / canvas.height;
                 const videoAspect = vWidth / vHeight;
-        
+
                 let sX, sY, sWidth, sHeight;
-        
+
                 if (videoAspect > targetAspect) {
                     sHeight = vHeight;
                     sWidth = vHeight * targetAspect;
@@ -464,7 +473,7 @@
                     sX = 0;
                     sY = (vHeight - sHeight) / 2;
                 }
-        
+
                 if (useFacingMode === "user") {
                     ctx.translate(canvas.width, 0);
                     ctx.scale(-1, 1);
@@ -475,8 +484,7 @@
                 
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
-        
-                // Kill active back flash parameters immediately once frame processing wraps
+
                 if (nativeFlashTriggered && videoTrack) {
                     try {
                         await videoTrack.applyConstraints({
@@ -484,14 +492,14 @@
                         });
                     } catch(err) {}
                 }
-        
+
                 if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
                     ctx.fillStyle = lightLayer.style.backgroundColor;
                     ctx.globalCompositeOperation = "overlay";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.globalCompositeOperation = "source-over";
                 }
-        
+
                 if (userCustomImgSrc) {
                     const customImg = new Image();
                     customImg.onload = function() {
@@ -501,12 +509,12 @@
                     customImg.src = userCustomImgSrc;
                     return; 
                 }
-        
+
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
                     ctx.lineWidth = 24;
                     ctx.strokeStyle = "#F8C8DC"; 
-        
+
                     if(frameStyle === 'classic') {
                         ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
                         ctx.fillStyle = "#F8C8DC";
@@ -537,9 +545,9 @@
                         ctx.fillText("[ INSERT COIN ]", canvas.width - 205, canvas.height - 40);
                     }
                 }
-        
+
                 executeDownload();
-        
+
                 function executeDownload() {
                     const dataURL = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -547,10 +555,10 @@
                     link.href = dataURL;
                     link.click();
                 }
-        
+
             }, flashEnabled ? 350 : 50);
         });
-        
+
         window.addEventListener('load', initCamera);
     </script>
 </body>
