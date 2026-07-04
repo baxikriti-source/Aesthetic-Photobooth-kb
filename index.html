@@ -163,13 +163,7 @@
             padding: 0 10px;         /* Prevents them from hitting edge walls on small screens */
         }
         
-        /* Optional: If you want the two buttons to split the screen 50/50 on small mobiles */
-        @media (max-width: 480px) {
-            .controls-row button {
-                flex: 1;             /* Forces both buttons to become equal width */
-                text-align: center;
-            }
-        }
+        
         .btn {
             background: #ff4081;
             color: white;
@@ -369,7 +363,7 @@
         
             try {
                 const constraints = {
-                    video: { facingMode: useFacingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    video: { facingMode: useFacingMode, width: { min: 1280, ideal: 1920, max: 3840 }, height: { min: 720, ideal: 1080, max: 2160 }, aspectRatio: { ideal: video.clientWidth / video.clientHeight }},
                     audio: false
                 };
                 
