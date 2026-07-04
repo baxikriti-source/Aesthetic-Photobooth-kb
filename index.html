@@ -469,11 +469,9 @@
             setTimeout(async () => {
                 const ctx = canvas.getContext('2d');
         
-                // DYNAMIC RESIZING BLOCK: Adapts output to match exactly how it looks on screen
                 const displayWidth = video.clientWidth;
                 const displayHeight = video.clientHeight;
                 
-                // Multiplied by 2 for high-resolution retinas/displays so the text stays crisp
                 canvas.width = displayWidth * 2;
                 canvas.height = displayHeight * 2;
         
@@ -484,7 +482,6 @@
         
                 let sX, sY, sWidth, sHeight;
         
-                // Smart Crop mapping logic based on live proportions
                 if (videoAspect > targetAspect) {
                     sHeight = vHeight;
                     sWidth = vHeight * targetAspect;
@@ -533,13 +530,16 @@
                     return; 
                 }
         
-                // Adaptive frame stroke weights matching the dynamically changing view canvas
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
                     const scaleFactor = canvas.width / displayWidth;
                     const borderSize = 16 * scaleFactor;
                     ctx.lineWidth = borderSize;
                     ctx.strokeStyle = "#F8C8DC"; 
+        
+                    // Shared typography baselines for uniform text alignment calculations
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
         
                     if(frameStyle === 'classic') {
                         const bottomBorderSize = 50 * scaleFactor;
@@ -548,29 +548,49 @@
                         ctx.fillRect(0, canvas.height - bottomBorderSize, canvas.width, bottomBorderSize);
                         ctx.fillStyle = "#770737";
                         ctx.font = `bold ${Math.round(10 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        ctx.textAlign = "center";
-                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBorderSize / 2.5));
+                        
+                        // Perfectly centered at the bottom panel midpoints
+                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBorderSize / 2));
                     } 
                     else if(frameStyle === 'playful') {
                         ctx.lineWidth = 12 * scaleFactor;
                         ctx.setLineDash([20 * scaleFactor, 20 * scaleFactor]);
                         ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
                         ctx.setLineDash([]); 
+        
+                        // Badge measurements
+                        const boxX = 20 * scaleFactor;
+                        const boxY = 20 * scaleFactor;
+                        const boxW = 130 * scaleFactor;
+                        const boxH = 36 * scaleFactor;
+        
                         ctx.fillStyle = "#770737";
-                        ctx.fillRect(20 * scaleFactor, 20 * scaleFactor, 130 * scaleFactor, 36 * scaleFactor);
+                        ctx.fillRect(boxX, boxY, boxW, boxH);
+                        
                         ctx.fillStyle = "#F8C8DC";
                         ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        ctx.textAlign = "center";
-                        ctx.fillText("♥︎ CUTE ♥︎", 30 * scaleFactor, 44 * scaleFactor);
+                        
+                        // Calculates the absolute center coordinates of the badge box
+                        ctx.fillText("♥︎CUTE♥︎", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
                     } 
                     else if(frameStyle === 'cyber') {
                         ctx.lineWidth = 8 * scaleFactor;
                         ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
+                        
+                        // Cabinet Box measurements
+                        const boxW = 190 * scaleFactor;
+                        const boxH = 32 * scaleFactor;
+                        const boxX = canvas.width - boxW - (20 * scaleFactor);
+                        const boxY = canvas.height - boxH - (20 * scaleFactor);
+        
                         ctx.fillStyle = "#000000";
-                        ctx.fillRect(canvas.width - (220 * scaleFactor), canvas.height - (50 * scaleFactor), 190 * scaleFactor, 32 * scaleFactor);
+                        ctx.fillRect(boxX, boxY, boxW, boxH);
+                        
                         ctx.fillStyle = "#ff4081";
                         ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        ctx.fillText("[ INSERT COIN ]", canvas.width - (205 * scaleFactor), canvas.height - (30 * scaleFactor));
+                        
+                        // Calculates the absolute center coordinates of the retro black box
+                        ctx.fillText("[ INSERT COIN ]", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
                     }
                 }
         
