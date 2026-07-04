@@ -158,6 +158,69 @@
             flex-direction: column;
             gap: 10px;               
         }
+
+        /* Timer panel grouping */
+        .timer-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(0,0,0,0.15);
+            padding: 6px;
+            border: 3px solid var(--bg-dark);
+        }
+        
+        .timer-options {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+        
+        /* Individual timer selector choices */
+        .timer-btn {
+            flex: 1;
+            background: var(--bg-dark);
+            color: var(--pink-light);
+            border: 2px solid var(--pink-light);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.5rem;
+            padding: 6px 2px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* Visual state showing which timer is currently selected */
+        .timer-btn.active {
+            background: #ff4081;
+            color: white;
+            border-color: #fff;
+            box-shadow: inset 0 0 4px #000;
+        }
+        
+        /* Big retro countdown numbers over the live video element */
+        .countdown-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            color: #ff4081;
+            font-size: 5rem;
+            font-weight: bold;
+            text-shadow: 4px 4px 0px #fff;
+            z-index: 5;
+            pointer-events: none;
+            animation: pulseCount 1s infinite;
+        }
+        
+        @keyframes pulseCount {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
         
         
         .btn {
@@ -242,6 +305,10 @@
                 flex-direction: column;
                 gap: 10px;
             }
+            
+            .timer-options {
+                flex-wrap: wrap; /* Wraps clean if layout squeezes on smaller desktops */
+            }
 
             #snap-btn {
                 height: 100%; /* Spans out to comfortably balance space on the side */
@@ -273,6 +340,7 @@
             <div id="light-layer" class="lighting-overlay"></div>
             <div id="frame-layer" class="frame-overlay"></div>
             <div id="flash-layer" class="flash"></div>
+            <div id="countdown-overlay" class="countdown-display" style="display: none;"></div>
         </div>
 
         <!-- Utility + Capture Sidebar (Appears on right side on desktop) -->
