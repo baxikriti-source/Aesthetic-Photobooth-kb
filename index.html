@@ -560,7 +560,8 @@
                         ctx.fillRect(20 * scaleFactor, 20 * scaleFactor, 130 * scaleFactor, 36 * scaleFactor);
                         ctx.fillStyle = "#F8C8DC";
                         ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        ctx.fillText("♥︎CUTE♥︎", 30 * scaleFactor, 44 * scaleFactor);
+                        ctx.textAlign = "center";
+                        ctx.fillText("♥︎ CUTE ♥︎", 30 * scaleFactor, 44 * scaleFactor);
                     } 
                     else if(frameStyle === 'cyber') {
                         ctx.lineWidth = 8 * scaleFactor;
