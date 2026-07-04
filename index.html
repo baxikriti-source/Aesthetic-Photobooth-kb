@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>★ PIXEL PHOTOBOOTH ★</title>
+    <title>★ PIXI PHOTOBOOTH ★</title>
     <!-- Retro Arcade Font -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
@@ -261,7 +261,7 @@
 </head>
 <body>
 
-    <h1>★ PIXEL PHOTOBOOTH ★</h1>
+    <h1>★ PIXI PHOTOBOOTH ★</h1>
 
     <div class="booth-container">
         <!-- Main Camera Display -->
@@ -342,28 +342,28 @@
         const lightSelect = document.getElementById('light-select');
         const snapBtn = document.getElementById('snap-btn');
         const canvas = document.getElementById('hidden-canvas');
-
+        
         let currentStream = null;
         let videoTrack = null;
         let useFacingMode = "user"; 
         let flashEnabled = true;
         let userCustomImgSrc = null;
-
+        
         async function initCamera() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
             }
-
+        
             try {
                 const constraints = {
-                    video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+                    video: { facingMode: useFacingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
                     audio: false
                 };
                 
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
                 videoTrack = currentStream.getVideoTracks()[0];
-
+        
                 if (useFacingMode === "user") {
                     video.classList.add('mirror-view');
                 } else {
@@ -373,28 +373,28 @@
                 alert("Camera unavailable!");
             }
         }
-
+        
         flipBtn.addEventListener('click', () => {
             useFacingMode = (useFacingMode === "user") ? "environment" : "user";
             initCamera();
         });
-
+        
         flashBtn.addEventListener('click', () => {
             flashEnabled = !flashEnabled;
             flashBtn.textContent = flashEnabled ? "⚡ FLASH: ON" : "❌ FLASH: OFF";
         });
-
+        
         function updateBoothFX() {
             let filterString = "";
             let lightBg = "transparent";
-
+        
             switch(filterSelect.value) {
                 case 'pixel': filterString += "contrast(160%) grayscale(100%) sepia(40%) brightness(95%)"; break;
                 case 'cyberpunk': filterString += "contrast(130%) hue-rotate(130deg) saturate(180%)"; break;
                 case 'nostalgia': filterString += "sepia(50%) contrast(110%) brightness(105%)"; break;
                 case 'mono': filterString += "grayscale(100%) contrast(150%)"; break;
             }
-
+        
             switch(lightSelect.value) {
                 case 'bright': filterString += " brightness(130%)"; break;
                 case 'moody': filterString += " brightness(65%) contrast(125%)"; break;
@@ -404,23 +404,23 @@
                 case 'green': lightBg = "rgba(0, 255, 100, 0.35)"; break;
                 case 'sunset': lightBg = "rgba(255, 140, 0, 0.3) "; filterString += " sepia(25%)"; break;
             }
-
+        
             video.style.filter = filterString;
             lightLayer.style.backgroundColor = lightBg;
         }
-
+        
         frameSelect.addEventListener('change', () => {
             customFile.value = ""; 
             userCustomImgSrc = null;
             frameLayer.className = "frame-overlay"; 
             frameLayer.style.backgroundImage = "none";
-
+        
             const val = frameSelect.value;
             if(val !== 'none') {
                 frameLayer.classList.add('frame-' + val);
             }
         });
-
+        
         customFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -434,13 +434,13 @@
                 reader.readAsDataURL(file);
             }
         });
-
+        
         filterSelect.addEventListener('change', updateBoothFX);
         lightSelect.addEventListener('change', updateBoothFX);
-
+        
         snapBtn.addEventListener('click', async () => {
             let nativeFlashTriggered = false;
-
+        
             if (flashEnabled && useFacingMode === "environment" && videoTrack) {
                 try {
                     if ('ImageCapture' in window) {
@@ -460,24 +460,31 @@
                     } catch(legacyErr){}
                 }
             }
-
+        
             if (flashEnabled) {
                 flashLayer.classList.add('active');
                 setTimeout(() => flashLayer.classList.remove('active'), 400);
             }
-
+        
             setTimeout(async () => {
                 const ctx = canvas.getContext('2d');
-                canvas.width = 600;
-                canvas.height = 800;
-
+        
+                // DYNAMIC RESIZING BLOCK: Adapts output to match exactly how it looks on screen
+                const displayWidth = video.clientWidth;
+                const displayHeight = video.clientHeight;
+                
+                // Multiplied by 2 for high-resolution retinas/displays so the text stays crisp
+                canvas.width = displayWidth * 2;
+                canvas.height = displayHeight * 2;
+        
                 const vWidth = video.videoWidth;
                 const vHeight = video.videoHeight;
-                const targetAspect = canvas.width / canvas.height;
+                const targetAspect = displayWidth / displayHeight;
                 const videoAspect = vWidth / vHeight;
-
+        
                 let sX, sY, sWidth, sHeight;
-
+        
+                // Smart Crop mapping logic based on live proportions
                 if (videoAspect > targetAspect) {
                     sHeight = vHeight;
                     sWidth = vHeight * targetAspect;
@@ -489,7 +496,7 @@
                     sX = 0;
                     sY = (vHeight - sHeight) / 2;
                 }
-
+        
                 if (useFacingMode === "user") {
                     ctx.translate(canvas.width, 0);
                     ctx.scale(-1, 1);
@@ -500,7 +507,7 @@
                 
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.filter = "none";
-
+        
                 if (nativeFlashTriggered && videoTrack) {
                     try {
                         await videoTrack.applyConstraints({
@@ -508,14 +515,14 @@
                         });
                     } catch(err) {}
                 }
-
+        
                 if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
                     ctx.fillStyle = lightLayer.style.backgroundColor;
                     ctx.globalCompositeOperation = "overlay";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.globalCompositeOperation = "source-over";
                 }
-
+        
                 if (userCustomImgSrc) {
                     const customImg = new Image();
                     customImg.onload = function() {
@@ -525,45 +532,49 @@
                     customImg.src = userCustomImgSrc;
                     return; 
                 }
-
+        
+                // Adaptive frame stroke weights matching the dynamically changing view canvas
                 const frameStyle = frameSelect.value;
                 if(frameStyle !== 'none') {
-                    ctx.lineWidth = 24;
+                    const scaleFactor = canvas.width / displayWidth;
+                    const borderSize = 16 * scaleFactor;
+                    ctx.lineWidth = borderSize;
                     ctx.strokeStyle = "#F8C8DC"; 
-
+        
                     if(frameStyle === 'classic') {
-                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+                        const bottomBorderSize = 50 * scaleFactor;
+                        ctx.strokeRect(borderSize/2, borderSize/2, canvas.width - borderSize, canvas.height - borderSize);
                         ctx.fillStyle = "#F8C8DC";
-                        ctx.fillRect(0, canvas.height - 70, canvas.width, 70);
+                        ctx.fillRect(0, canvas.height - bottomBorderSize, canvas.width, bottomBorderSize);
                         ctx.fillStyle = "#770737";
-                        ctx.font = "bold 12px 'Press Start 2P', monospace";
+                        ctx.font = `bold ${Math.round(10 * scaleFactor)}px 'Press Start 2P', monospace`;
                         ctx.textAlign = "center";
-                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - 30);
+                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBorderSize / 2.5));
                     } 
                     else if(frameStyle === 'playful') {
-                        ctx.setLineDash([20, 20]);
-                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+                        ctx.lineWidth = 12 * scaleFactor;
+                        ctx.setLineDash([20 * scaleFactor, 20 * scaleFactor]);
+                        ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
                         ctx.setLineDash([]); 
                         ctx.fillStyle = "#770737";
-                        ctx.fillRect(25, 25, 130, 36);
+                        ctx.fillRect(20 * scaleFactor, 20 * scaleFactor, 130 * scaleFactor, 36 * scaleFactor);
                         ctx.fillStyle = "#F8C8DC";
-                        ctx.font = "9px 'Press Start 2P', monospace";
-                        ctx.fillText("♥︎CUTE♥︎", 36, 48);
+                        ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
+                        ctx.fillText("♥︎CUTE♥︎", 30 * scaleFactor, 44 * scaleFactor);
                     } 
                     else if(frameStyle === 'cyber') {
-                        ctx.lineWidth = 10;
-                        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
-                        ctx.strokeRect(26, 26, canvas.width - 52, canvas.height - 52);
+                        ctx.lineWidth = 8 * scaleFactor;
+                        ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
                         ctx.fillStyle = "#000000";
-                        ctx.fillRect(canvas.width - 220, canvas.height - 60, 180, 32);
+                        ctx.fillRect(canvas.width - (220 * scaleFactor), canvas.height - (50 * scaleFactor), 190 * scaleFactor, 32 * scaleFactor);
                         ctx.fillStyle = "#ff4081";
-                        ctx.font = "8px 'Press Start 2P', monospace";
-                        ctx.fillText("[ INSERT COIN ]", canvas.width - 205, canvas.height - 40);
+                        ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
+                        ctx.fillText("[ INSERT COIN ]", canvas.width - (205 * scaleFactor), canvas.height - (30 * scaleFactor));
                     }
                 }
-
+        
                 executeDownload();
-
+        
                 function executeDownload() {
                     const dataURL = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -571,10 +582,10 @@
                     link.href = dataURL;
                     link.click();
                 }
-
+        
             }, flashEnabled ? 350 : 50);
         });
-
+        
         window.addEventListener('load', initCamera);
     </script>
 </body>
