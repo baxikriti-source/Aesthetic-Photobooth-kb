@@ -534,10 +534,12 @@
                 if(frameStyle !== 'none') {
                     const scaleFactor = canvas.width / displayWidth;
                     const borderSize = 16 * scaleFactor;
+                    
+                    // RESET SCALE & MIRROR FOR FRAMES so alignments remain identical across both cameras
+                    ctx.setTransform(1, 0, 0, 1, 0, 0); 
+                    
                     ctx.lineWidth = borderSize;
                     ctx.strokeStyle = "#F8C8DC"; 
-        
-                    // Shared typography baselines for uniform text alignment calculations
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
         
@@ -549,7 +551,6 @@
                         ctx.fillStyle = "#770737";
                         ctx.font = `bold ${Math.round(10 * scaleFactor)}px 'Press Start 2P', monospace`;
                         
-                        // Perfectly centered at the bottom panel midpoints
                         ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBorderSize / 2));
                     } 
                     else if(frameStyle === 'playful') {
@@ -558,7 +559,6 @@
                         ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
                         ctx.setLineDash([]); 
         
-                        // Badge measurements
                         const boxX = 20 * scaleFactor;
                         const boxY = 20 * scaleFactor;
                         const boxW = 130 * scaleFactor;
@@ -570,14 +570,13 @@
                         ctx.fillStyle = "#F8C8DC";
                         ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
                         
-                        // Calculates the absolute center coordinates of the badge box
+                        // Absolute center calculation unwarped by camera matrix flips
                         ctx.fillText("♥︎CUTE♥︎", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
                     } 
                     else if(frameStyle === 'cyber') {
                         ctx.lineWidth = 8 * scaleFactor;
                         ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
                         
-                        // Cabinet Box measurements
                         const boxW = 190 * scaleFactor;
                         const boxH = 32 * scaleFactor;
                         const boxX = canvas.width - boxW - (20 * scaleFactor);
@@ -589,7 +588,6 @@
                         ctx.fillStyle = "#ff4081";
                         ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
                         
-                        // Calculates the absolute center coordinates of the retro black box
                         ctx.fillText("[ INSERT COIN ]", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
                     }
                 }
