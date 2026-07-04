@@ -34,12 +34,12 @@
         h1 {
             font-size: 1.3rem;
             text-align: center;
-            margin: 15px 0;
+            margin: 10px 0;
             text-shadow: 4px 4px 0px var(--plum-medium);
             letter-spacing: -1px;
         }
 
-        /* Mobile First Layout (Stacked like before) */
+        /* Base Container Style */
         .booth-container {
             background: var(--plum-medium);
             border: 6px solid var(--pink-light);
@@ -52,25 +52,7 @@
             gap: 15px;
         }
 
-        /* RESPONSIVE LAYOUT FOR TABS & LAPTOPS (Matches layout in image_851b38.png) */
-        @media (min-width: 768px) {
-            .booth-container {
-                max-width: 900px;
-                flex-direction: row; /* Side-by-side columns */
-                align-items: stretch;
-            }
-
-            .screen-wrapper {
-                flex: 1.6; /* Camera gets the majority of the landscape width */
-            }
-
-            .control-panel {
-                flex: 1; /* Control panel scales to the right side perfectly */
-                justify-content: space-between;
-            }
-        }
-
-        /* Screen Wrapper - Strictly 3:4 portrait aspect ratio */
+        /* Screen Wrapper Setup */
         .screen-wrapper {
             position: relative;
             width: 100%;
@@ -80,7 +62,6 @@
             overflow: hidden;
         }
 
-        /* Video fills container beautifully without stretching */
         video {
             position: absolute;
             top: 0;
@@ -90,12 +71,10 @@
             object-fit: cover;
         }
 
-        /* Mirror mode class applied ONLY when using user/front camera */
         .mirror-view {
             transform: scaleX(-1);
         }
 
-        /* Lighting Overlay Layer */
         .lighting-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -105,7 +84,6 @@
             transition: background-color 0.2s ease;
         }
 
-        /* Rigid Pixel Frame Layer */
         .frame-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -117,40 +95,22 @@
             background-repeat: no-repeat;
         }
 
-        /* Dynamic generated CSS frame designs */
-        .frame-classic {
-            border: 16px solid var(--pink-light);
-            border-bottom: 50px solid var(--pink-light);
-        }
-        .frame-classic::after {
-            content: "• PURITY •";
-            position: absolute;
-            bottom: -36px; left: 0; width: 100%;
-            text-align: center; color: var(--bg-dark); font-size: 0.5rem;
-        }
+        /* Frame Styles */
+        .frame-classic { border: 16px solid var(--pink-light); border-bottom: 50px solid var(--pink-light); }
+        .frame-classic::after { content: "• PURITY •"; position: absolute; bottom: -36px; left: 0; width: 100%; text-align: center; color: var(--bg-dark); font-size: 0.5rem; }
+        .frame-playful { border: 12px dashed var(--pink-light); outline: 6px solid var(--bg-dark); outline-offset: -12px; }
+        .frame-playful::before { content: "♥︎CUTE♥︎"; position: absolute; top: 14px; left: 14px; background: var(--bg-dark); padding: 4px; font-size: 0.5rem; }
+        .frame-cyber { border: 8px double var(--pink-light); }
+        .frame-cyber::after { content: "[ INSERT COIN ]"; position: absolute; bottom: 15px; right: 15px; background: #000; color: #ff4081; font-size: 0.45rem; padding: 4px; }
 
-        .frame-playful {
-            border: 12px dashed var(--pink-light);
-            outline: 6px solid var(--bg-dark);
-            outline-offset: -12px;
-        }
-        .frame-playful::before {
-            content: "♥︎CUTE♥︎";
-            position: absolute; top: 14px; left: 14px;
-            background: var(--bg-dark); padding: 4px; font-size: 0.5rem;
-        }
-
-        .frame-cyber {
-            border: 8px double var(--pink-light);
-        }
-        .frame-cyber::after {
-            content: "[ INSERT COIN ]";
-            position: absolute; bottom: 15px; right: 15px;
-            background: #000; color: #ff4081; font-size: 0.45rem; padding: 4px;
-        }
-
-        /* UI Controls */
+        /* UI Blocks */
         .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-sidebar {
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -191,19 +151,12 @@
             cursor: pointer;
         }
 
-        /* Top Bar Button Rows */
         .utility-row {
             display: flex;
             gap: 8px;
             width: 100%;
         }
 
-        .utility-row .btn {
-            flex: 1;
-            margin-top: 0;
-        }
-
-        /* Capture & Utilities Buttons */
         .btn {
             background: #ff4081;
             color: white;
@@ -215,7 +168,6 @@
             cursor: pointer;
             text-align: center;
             box-shadow: 0 4px 0px #000;
-            margin-top: 5px;
         }
 
         .btn:active {
@@ -231,10 +183,12 @@
             border-color: #fff var(--bg-dark) var(--bg-dark) #fff;
             padding: 8px;
             font-size: 0.55rem;
-            margin-bottom: 5px;
         }
 
-        /* White Flash Overlay */
+        #snap-btn {
+            width: 100%;
+        }
+
         .flash {
             position: absolute;
             top:0; left:0; width:100%; height:100%;
@@ -242,6 +196,67 @@
         }
         .flash.active { animation: flashAnim 0.4s ease-out; }
         @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        /* ==========================================================================
+           DESKTOP/LAPTOP DESIGN OVERRIDES (Resolves layout issue seen in image_85261c.jpg)
+           ========================================================================== */
+        @media (min-width: 768px) {
+            body {
+                justify-content: center; /* Centers container on screen */
+                padding: 20px;
+            }
+
+            .booth-container {
+                max-width: 95vw;
+                width: auto;
+                display: grid;
+                grid-template-columns: auto 240px; /* Camera automatically sizes, right sidebar takes 240px */
+                grid-template-rows: auto auto;
+                gap: 15px;
+            }
+
+            /* No scroll dynamic layout setup */
+            .screen-wrapper {
+                grid-column: 1;
+                grid-row: 1;
+                width: auto;
+                /* Limit camera height to 55% of monitor so everything displays perfectly on screen */
+                height: 55vh; 
+                aspect-ratio: 4 / 3; /* Standard widescreen landscape aspect ratio */
+            }
+
+            /* Moves Utility Actions directly into the right-side section */
+            .action-sidebar {
+                grid-column: 2;
+                grid-row: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                gap: 12px;
+            }
+
+            .utility-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            #snap-btn {
+                height: 100%; /* Spans out to comfortably balance space on the side */
+                min-height: 80px;
+            }
+
+            /* Forces controls panel into a unified horizontal bar at the bottom */
+            .control-panel {
+                grid-column: 1 / span 2;
+                grid-row: 2;
+                flex-direction: row;
+                width: 100%;
+            }
+
+            .control-group {
+                flex: 1; /* Each configuration card takes an equal portion of horizontal space */
+            }
+        }
     </style>
 </head>
 <body>
@@ -249,7 +264,7 @@
     <h1>★ PIXEL PHOTOBOOTH ★</h1>
 
     <div class="booth-container">
-        <!-- LEFT PANEL (Desktop) / TOP PANEL (Mobile) -->
+        <!-- Main Camera Display -->
         <div class="screen-wrapper">
             <video id="video" class="mirror-view" autoplay playsinline muted></video>
             <div id="light-layer" class="lighting-overlay"></div>
@@ -257,14 +272,17 @@
             <div id="flash-layer" class="flash"></div>
         </div>
 
-        <!-- RIGHT PANEL (Desktop) / BOTTOM PANEL (Mobile) -->
-        <div class="control-panel">
-            <!-- Utility Toggles -->
+        <!-- Utility + Capture Sidebar (Appears on right side on desktop) -->
+        <div class="action-sidebar">
             <div class="utility-row">
                 <button id="flip-btn" class="btn btn-secondary">🔄 FLIP CAM</button>
                 <button id="flash-btn" class="btn btn-secondary">⚡ FLASH: ON</button>
             </div>
+            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
+        </div>
 
+        <!-- Customizations Control Panel (Stacks horizontally at bottom on desktop) -->
+        <div class="control-panel">
             <!-- Frame Customization -->
             <div class="control-group">
                 <label for="frame-select">1. Pixel Frame</label>
@@ -274,7 +292,7 @@
                     <option value="playful">Chunky Dash</option>
                     <option value="cyber">Retro Cabinet</option>
                 </select>
-                <label style="margin-top: 8px; margin-bottom: 4px;">Custom Template Upload:</label>
+                <label style="margin-top: 8px; margin-bottom: 4px;">Custom Frame Asset:</label>
                 <input type="file" id="custom-file" accept="image/*">
             </div>
 
@@ -304,12 +322,10 @@
                     <option value="sunset">Blush Sunset</option>
                 </select>
             </div>
-
-            <button id="snap-btn" class="btn">CAPTURE PHOTO</button>
         </div>
     </div>
 
-    <!-- Processing Canvas -->
+    <!-- Hidden Rendering Canvas -->
     <canvas id="hidden-canvas" style="display:none;"></canvas>
 
     <script>
