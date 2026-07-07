@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>★ PIXI PHOTOBOOTH ★</title>
-    <!-- Retro Arcade Font -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #770737;
+            --bg-dark-base: #301120;
+            --bg-dot-color: #5c2641;
             --pink-light: #F8C8DC;
-            --plum-medium: #673147;
+            --plum-medium: #4e1d35;
         }
 
         * {
@@ -21,7 +21,12 @@
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-dark-base);
+            background-image: 
+                radial-gradient(var(--bg-dot-color) 20%, transparent 20%),
+                radial-gradient(var(--bg-dot-color) 20%, transparent 20%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
             color: var(--pink-light);
             margin: 0;
             padding: 10px;
@@ -35,11 +40,10 @@
             font-size: 1.3rem;
             text-align: center;
             margin: 10px 0;
-            text-shadow: 4px 4px 0px var(--plum-medium);
+            text-shadow: 4px 4px 0px #000;
             letter-spacing: -1px;
         }
 
-        /* Base Container Style */
         .booth-container {
             background: var(--plum-medium);
             border: 6px solid var(--pink-light);
@@ -52,7 +56,6 @@
             gap: 15px;
         }
 
-        /* Screen Wrapper Setup */
         .screen-wrapper {
             position: relative;
             width: 100%;
@@ -69,6 +72,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            background: #000;
         }
 
         .mirror-view {
@@ -95,15 +99,20 @@
             background-repeat: no-repeat;
         }
 
-        /* Frame Styles */
         .frame-classic { border: 16px solid var(--pink-light); border-bottom: 50px solid var(--pink-light); }
-        .frame-classic::after { content: "• PURITY •"; position: absolute; bottom: -36px; left: 0; width: 100%; text-align: center; color: var(--bg-dark); font-size: 0.5rem; }
-        .frame-playful { border: 12px dashed var(--pink-light); outline: 6px solid var(--bg-dark); outline-offset: -12px; }
-        .frame-playful::before { content: "♥︎ CUTE ♥︎"; position: absolute; top: 14px; left: 14px; background: var(--bg-dark); padding: 4px; font-size: 0.5rem; }
+        .frame-classic::after { content: "• PURITY •"; position: absolute; bottom: -36px; left: 0; width: 100%; text-align: center; color: var(--bg-dark-base); font-size: 0.5rem; }
+        .frame-playful { border: 12px dashed var(--pink-light); outline: 6px solid var(--bg-dark-base); outline-offset: -12px; }
+        .frame-playful::before { content: "♥︎ CUTE ♥︎"; position: absolute; top: 14px; left: 14px; background: var(--bg-dark-base); padding: 4px; font-size: 0.5rem; }
         .frame-cyber { border: 8px double var(--pink-light); }
         .frame-cyber::after { content: "[ INSERT COIN ]"; position: absolute; bottom: 15px; right: 15px; background: #000; color: #ff4081; font-size: 0.45rem; padding: 4px; }
+        .frame-magazine { border: 20px solid #fff; border-top: 40px solid #fff; }
+        .frame-magazine::after { content: "ISSUE #01"; position: absolute; top: -30px; left: 15px; color: #000; font-size: 0.5rem; }
+        
+        .frame-strip-classic { border: 12px solid var(--pink-light); }
+        .frame-strip-film { border: 16px solid #111; border-left: 24px dashed #fff; border-right: 24px dashed #fff; }
+        .frame-strip-kawaii { border: 14px solid #fff; outline: 4px dotted #ff4081; }
+        .frame-strip-neon { border: 10px solid #ff4081; box-shadow: inset 0 0 10px #fff; }
 
-        /* UI Blocks */
         .control-panel {
             display: flex;
             flex-direction: column;
@@ -118,7 +127,7 @@
         }
 
         .control-group {
-            border: 3px solid var(--bg-dark);
+            border: 3px solid var(--bg-dark-base);
             padding: 8px;
             background: rgba(0,0,0,0.15);
         }
@@ -133,7 +142,7 @@
 
         select, input[type="file"] {
             width: 100%;
-            background: var(--bg-dark);
+            background: var(--bg-dark-base);
             border: 2px solid var(--pink-light);
             color: var(--pink-light);
             padding: 5px;
@@ -145,28 +154,27 @@
 
         input[type="file"]::-webkit-file-upload-button {
             background: var(--pink-light);
-            color: var(--bg-dark);
+            color: var(--bg-dark-base);
             border: 2px solid #fff;
             font-family: 'Press Start 2P', monospace;
             font-size: 0.5rem;
             cursor: pointer;
         }
 
-        .utility-row { /* Rename this to match your actual container class name */
+        .utility-row {
             display: flex;
             justify-content: center; 
             flex-direction: column;
             gap: 10px;               
         }
 
-        /* Timer panel grouping */
         .timer-panel {
             display: flex;
             flex-direction: column;
             gap: 6px;
             background: rgba(0,0,0,0.15);
             padding: 6px;
-            border: 3px solid var(--bg-dark);
+            border: 3px solid var(--bg-dark-base);
         }
         
         .timer-options {
@@ -175,10 +183,9 @@
             width: 100%;
         }
         
-        /* Individual timer selector choices */
         .timer-btn {
             flex: 1;
-            background: var(--bg-dark);
+            background: var(--bg-dark-base);
             color: var(--pink-light);
             border: 2px solid var(--pink-light);
             font-family: 'Press Start 2P', monospace;
@@ -188,7 +195,6 @@
             text-align: center;
         }
 
-        /* Visual state showing which timer is currently selected */
         .timer-btn.active {
             background: #ff4081;
             color: white;
@@ -196,23 +202,13 @@
             box-shadow: inset 0 0 4px #000;
         }
         
-        /* Big retro countdown numbers over the live video element */
         .countdown-display {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
             background: rgba(0, 0, 0, 0.4);
-            color: #ff4081;
-            font-size: 5rem;
-            font-weight: bold;
-            text-shadow: 4px 4px 0px #fff;
-            z-index: 5;
-            pointer-events: none;
+            color: #ff4081; font-size: 5rem; font-weight: bold;
+            text-shadow: 4px 4px 0px #fff; z-index: 5; pointer-events: none;
             animation: pulseCount 1s infinite;
         }
         
@@ -222,119 +218,64 @@
             100% { transform: scale(1); opacity: 1; }
         }
         
-        
         .btn {
-            background: #ff4081;
-            color: white;
-            border: 4px solid #fff;
-            border-right-color: #c51162;
-            border-bottom-color: #c51162;
-            padding: 12px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            text-align: center;
+            background: #ff4081; color: white;
+            border: 4px solid #fff; border-right-color: #c51162; border-bottom-color: #c51162;
+            padding: 12px; font-size: 0.75rem; cursor: pointer; text-align: center;
             box-shadow: 0 4px 0px #000;
         }
 
         .btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0px #000;
-            border-right-color: #fff;
-            border-bottom-color: #fff;
+            transform: translateY(2px); box-shadow: 0 2px 0px #000;
+            border-right-color: #fff; border-bottom-color: #fff;
         }
 
         .btn-secondary {
-            background: var(--pink-light);
-            color: var(--bg-dark);
-            border-color: #fff var(--bg-dark) var(--bg-dark) #fff;
-            padding: 8px;
-            font-size: 0.55rem;
+            background: var(--pink-light); color: var(--bg-dark-base);
+            border-color: #fff var(--bg-dark-base) var(--bg-dark-base) #fff;
+            padding: 8px; font-size: 0.55rem;
         }
 
-        #snap-btn {
-            width: 100%;
-        }
+        #snap-btn { width: 100%; }
 
         .flash {
-            position: absolute;
-            top:0; left:0; width:100%; height:100%;
+            position: absolute; top:0; left:0; width:100%; height:100%;
             background: #fff; opacity: 0; z-index: 10; pointer-events: none;
         }
         .flash.active { animation: flashAnim 0.4s ease-out; }
         @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
 
-        /* ==========================================================================
-           DESKTOP/LAPTOP DESIGN OVERRIDES (Resolves layout issue seen in image_85261c.jpg)
-           ========================================================================== */
         @media (min-width: 768px) {
-            body {
-                justify-content: center; /* Centers container on screen */
-                padding: 20px;
-            }
-
+            body { justify-content: center; padding: 20px; }
             .booth-container {
-                max-width: 95vw;
-                width: auto;
-                display: grid;
-                grid-template-columns: auto 240px; /* Camera automatically sizes, right sidebar takes 240px */
-                grid-template-rows: auto auto;
-                gap: 15px;
+                max-width: 95vw; width: auto;
+                display: grid; grid-template-columns: auto 240px; grid-template-rows: auto auto; gap: 15px;
             }
+            .screen-wrapper { grid-column: 1; grid-row: 1; width: auto; height: 55vh; aspect-ratio: 4 / 3; }
+            .action-sidebar { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 12px; }
+            .utility-row { flex-direction: column; gap: 10px; }
+            .timer-options { flex-wrap: wrap; }
+            #snap-btn { height: 100%; min-height: 80px; }
+            .control-panel { grid-column: 1 / span 2; grid-row: 2; flex-direction: row; width: 100%; }
+            .control-group { flex: 1; }
+        }
 
-            /* No scroll dynamic layout setup */
-            .screen-wrapper {
-                grid-column: 1;
-                grid-row: 1;
-                width: auto;
-                /* Limit camera height to 55% of monitor so everything displays perfectly on screen */
-                height: 55vh; 
-                aspect-ratio: 4 / 3; /* Standard widescreen landscape aspect ratio */
-            }
-
-            /* Moves Utility Actions directly into the right-side section */
-            .action-sidebar {
-                grid-column: 2;
-                grid-row: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                gap: 12px;
-            }
-
-            .utility-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .timer-options {
-                flex-wrap: wrap; /* Wraps clean if layout squeezes on smaller desktops */
-            }
-
-            #snap-btn {
-                height: 100%; /* Spans out to comfortably balance space on the side */
-                min-height: 80px;
-            }
-
-            /* Forces controls panel into a unified horizontal bar at the bottom */
-            .control-panel {
-                grid-column: 1 / span 2;
-                grid-row: 2;
-                flex-direction: row;
-                width: 100%;
-            }
-
-            .control-group {
-                flex: 1; /* Each configuration card takes an equal portion of horizontal space */
+        @media (min-width: 1024px) {
+            body, html, button, select, input, label, a, option, .timer-btn { cursor: auto !important; }
+            #custom-arrow, #custom-pointer {
+                display: none !important; position: fixed; top: 0; left: 0; width: 32px; height: 32px;
+                z-index: 999999; pointer-events: none; will-change: transform; transform: translate3d(-100px, -100px, 0);
             }
         }
     </style>
 </head>
 <body>
+    <img id="custom-arrow" src="1.png" alt="Cursor Arrow" style="display:none;" />
+    <img id="custom-pointer" src="2.png" alt="Cursor Pointer" style="display:none;" />
 
     <h1>★ PIXI PHOTOBOOTH ★</h1>
 
     <div class="booth-container">
-        <!-- Main Camera Display -->
         <div class="screen-wrapper">
             <video id="video" class="mirror-view" autoplay playsinline muted></video>
             <div id="light-layer" class="lighting-overlay"></div>
@@ -343,14 +284,12 @@
             <div id="countdown-overlay" class="countdown-display" style="display: none;"></div>
         </div>
 
-        <!-- Utility + Capture Sidebar (Appears on right side on desktop) -->
         <div class="action-sidebar">
             <div class="utility-row">
+                <button id="start-camera-btn" class="btn btn-secondary">📷 START CAMERA</button>
                 <button id="flip-btn" class="btn btn-secondary"> <-> FLIP CAM</button>
                 <button id="flash-btn" class="btn btn-secondary"> >o< FLASH: ON</button>
             </div>
-            
-            <!-- New Timer Selector Panel -->
             <div class="timer-panel">
                 <label>⌛︎ TIMER</label>
                 <div class="timer-options">
@@ -360,25 +299,25 @@
                     <button class="timer-btn" data-time="10">10s</button>
                 </div>
             </div>
-        
             <button id="snap-btn" class="btn"> [ o'] CAPTURE PHOTO</button>
         </div>
-        <!-- Customizations Control Panel (Stacks horizontally at bottom on desktop) -->
+
         <div class="control-panel">
-            <!-- Frame Customization -->
+            <div class="control-group">
+                <label for="shots-select">📸 PHOTO STRIP LAYOUT</label>
+                <select id="shots-select">
+                    <option value="1">Single Shot (Default)</option>
+                    <option value="2">Double Cut (2 Photos)</option>
+                    <option value="3">Triple Cut (3 Photos)</option>
+                    <option value="4">Four Cuts (4 Photos)</option>
+                </select>
+            </div>
             <div class="control-group">
                 <label for="frame-select">Select Frame</label>
-                <select id="frame-select">
-                    <option value="none">No Frame</option>
-                    <option value="classic">Classic Polaroid</option>
-                    <option value="playful">Chunky Dash</option>
-                    <option value="cyber">Retro Cabinet</option>
-                </select>
+                <select id="frame-select"></select>
                 <label style="margin-top: 8px; margin-bottom: 4px;">Custom Frame Asset:</label>
                 <input type="file" id="custom-file" accept="image/*">
             </div>
-
-            <!-- Filters -->
             <div class="control-group">
                 <label for="filter-select">FX Filter</label>
                 <select id="filter-select">
@@ -389,8 +328,6 @@
                     <option value="mono">Noir Monochrome</option>
                 </select>
             </div>
-
-            <!-- Lighting Mode -->
             <div class="control-group">
                 <label for="light-select">Stage Lighting</label>
                 <select id="light-select">
@@ -407,7 +344,6 @@
         </div>
     </div>
 
-    <!-- Hidden Rendering Canvas -->
     <canvas id="hidden-canvas" style="display:none;"></canvas>
 
     <script>
@@ -416,67 +352,136 @@
         const frameLayer = document.getElementById('frame-layer');
         const flashLayer = document.getElementById('flash-layer');
         const countdownOverlay = document.getElementById('countdown-overlay'); 
-        
+        const startCameraBtn = document.getElementById('start-camera-btn');
         const flipBtn = document.getElementById('flip-btn');
         const flashBtn = document.getElementById('flash-btn');
         const frameSelect = document.getElementById('frame-select');
         const customFile = document.getElementById('custom-file');
         const filterSelect = document.getElementById('filter-select');
         const lightSelect = document.getElementById('light-select');
+        const shotsSelect = document.getElementById('shots-select');
         const snapBtn = document.getElementById('snap-btn');
         const canvas = document.getElementById('hidden-canvas');
         
         let currentStream = null;
-        let videoTrack = null;
         let useFacingMode = "user"; 
         let flashEnabled = true;
         let userCustomImgSrc = null;
-        
         let selectedTimer = 0; 
-        const timerButtons = document.querySelectorAll('.timer-btn');
+        let capturedImages = [];
 
-        timerButtons.forEach(btn => {
+        const frameDefinitions = {
+            single: [
+                { value: "none", text: "No Frame" },
+                { value: "classic", text: "Classic Polaroid" },
+                { value: "playful", text: "Chunky Dash" },
+                { value: "cyber", text: "Retro Cabinet" },
+                { value: "magazine", text: "Pop Culture Mag" }
+            ],
+            multi: [
+                { value: "none", text: "No Frame" },
+                { value: "strip-classic", text: "Classic Film Strip" },
+                { value: "strip-film", text: "Cinema Film Roll" },
+                { value: "strip-kawaii", text: "Kawaii Sticker Club" },
+                { value: "strip-neon", text: "Electric Cyber Grid" }
+            ]
+        };
+
+        function updateFrameDropdown() {
+            const layoutCount = parseInt(shotsSelect.value, 10);
+            const targets = (layoutCount === 1) ? frameDefinitions.single : frameDefinitions.multi;
+            frameSelect.innerHTML = "";
+            targets.forEach(opt => {
+                const optionEl = document.createElement('option');
+                optionEl.value = opt.value;
+                optionEl.textContent = opt.text;
+                frameSelect.appendChild(optionEl);
+            });
+            frameLayer.className = "frame-overlay";
+            frameLayer.style.backgroundImage = "none";
+            userCustomImgSrc = null;
+            customFile.value = "";
+            bindCustomCursorHover();
+        }
+
+        shotsSelect.addEventListener('change', updateFrameDropdown);
+
+        document.querySelectorAll('.timer-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                timerButtons.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 selectedTimer = parseInt(btn.getAttribute('data-time'), 10);
             });
         });
 
+        function showCameraError(message) {
+            console.error(message);
+            alert(message);
+        }
+
+        // Fail-Safe Hardware Fallback Camera Engine
         async function initCamera() {
+            if (location.protocol === 'file:') {
+                showCameraError('Camera access requires the page to be opened from a local web server such as http://localhost or https://. Please run the page from a server and allow camera permissions.');
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showCameraError('This browser does not support webcam access. Please use Chrome or Edge and allow camera permissions.');
+                return;
+            }
+
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
             }
         
-            try {
-                // FIXED THE SYNTAX ERROR HERE
-                const constraints = {
-                    video: { 
-                        facingMode: useFacingMode,
-                        width: { min: 1280, ideal: 1920, max: 3840 }, 
-                        height: { min: 720, ideal: 1080, max: 2160 }, 
-                        aspectRatio: { ideal: video.clientWidth / video.clientHeight }
-                    },
-                    audio: false
-                };
-                
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = currentStream;
-                videoTrack = currentStream.getVideoTracks()[0];
-        
+            // Fallback chain layout to catch all types of integrated devices
+            const constraintOptions = [
+                { video: { facingMode: useFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+                { video: { facingMode: useFacingMode }, audio: false },
+                { video: true, audio: false }
+            ];
+
+            let success = false;
+            for (let constraints of constraintOptions) {
+                try {
+                    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = currentStream;
+                    
+                    await new Promise((resolve) => {
+                        video.onloadedmetadata = () => {
+                            video.play().then(resolve).catch(resolve);
+                        };
+                    });
+                    
+                    success = true;
+                    break; 
+                } catch (e) {
+                    console.warn("Constraint profile rejected, shifting down...", e);
+                }
+            }
+
+            if (success) {
                 if (useFacingMode === "user") {
                     video.classList.add('mirror-view');
                 } else {
                     video.classList.remove('mirror-view');
                 }
-            } catch (err) {
-                alert("Camera unavailable!");
+            } else {
+                showCameraError("Camera access was blocked. Please allow camera permissions for this page and make sure no other app is using the webcam.");
             }
         }
         
-        flipBtn.addEventListener('click', () => {
+        startCameraBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            await initCamera();
+        });
+
+        flipBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
             useFacingMode = (useFacingMode === "user") ? "environment" : "user";
-            initCamera();
+            await initCamera();
         });
         
         flashBtn.addEventListener('click', () => {
@@ -487,14 +492,12 @@
         function updateBoothFX() {
             let filterString = "";
             let lightBg = "transparent";
-        
             switch(filterSelect.value) {
                 case 'pixel': filterString += "contrast(160%) grayscale(100%) sepia(40%) brightness(95%)"; break;
                 case 'cyberpunk': filterString += "contrast(130%) hue-rotate(130deg) saturate(180%)"; break;
                 case 'nostalgia': filterString += "sepia(50%) contrast(110%) brightness(105%)"; break;
                 case 'mono': filterString += "grayscale(100%) contrast(150%)"; break;
             }
-        
             switch(lightSelect.value) {
                 case 'bright': filterString += " brightness(130%)"; break;
                 case 'moody': filterString += " brightness(65%) contrast(125%)"; break;
@@ -504,21 +507,15 @@
                 case 'green': lightBg = "rgba(0, 255, 100, 0.35)"; break;
                 case 'sunset': lightBg = "rgba(255, 140, 0, 0.3) "; filterString += " sepia(25%)"; break;
             }
-        
             video.style.filter = filterString;
             lightLayer.style.backgroundColor = lightBg;
         }
         
         frameSelect.addEventListener('change', () => {
-            customFile.value = ""; 
-            userCustomImgSrc = null;
-            frameLayer.className = "frame-overlay"; 
-            frameLayer.style.backgroundImage = "none";
-        
+            customFile.value = ""; userCustomImgSrc = null;
+            frameLayer.className = "frame-overlay"; frameLayer.style.backgroundImage = "none";
             const val = frameSelect.value;
-            if(val !== 'none') {
-                frameLayer.classList.add('frame-' + val);
-            }
+            if(val !== 'none') frameLayer.classList.add('frame-' + val);
         });
         
         customFile.addEventListener('change', (e) => {
@@ -538,16 +535,29 @@
         filterSelect.addEventListener('change', updateBoothFX);
         lightSelect.addEventListener('change', updateBoothFX);
         
-        snapBtn.addEventListener('click', () => {
-            snapBtn.disabled = true; 
+        snapBtn.addEventListener('click', async () => {
+            if (!currentStream) {
+                await initCamera();
+            }
+            snapBtn.disabled = true; capturedImages = [];
+            const totalShots = parseInt(shotsSelect.value, 10);
+            for (let i = 0; i < totalShots; i++) {
+                let initialDelay = (i === 0) ? selectedTimer : 3;
+                if (initialDelay > 0) await runCountdownSequence(initialDelay);
+                const frameSnapshot = await captureFrameToBuffer();
+                capturedImages.push(frameSnapshot);
+            }
+            compilePhotoStrip(capturedImages);
+            snapBtn.disabled = false;
+        });
 
-            if (selectedTimer > 0) {
-                let count = selectedTimer;
+        function runCountdownSequence(seconds) {
+            return new Promise((resolve) => {
+                let count = seconds;
                 if (countdownOverlay) {
                     countdownOverlay.textContent = count;
                     countdownOverlay.style.display = 'flex';
                 }
-
                 const timerInterval = setInterval(() => {
                     count--;
                     if (count > 0) {
@@ -555,182 +565,329 @@
                     } else {
                         clearInterval(timerInterval);
                         if (countdownOverlay) countdownOverlay.style.display = 'none';
-                        snapBtn.disabled = false;
-                        runCaptureLogic(); 
+                        resolve();
                     }
                 }, 1000);
-            } else {
-                snapBtn.disabled = false;
-                runCaptureLogic(); 
-            }
-        });
+            });
+        }
 
-        async function runCaptureLogic() {
-            let nativeFlashTriggered = false;
-        
-            if (flashEnabled && useFacingMode === "environment" && videoTrack) {
-                try {
-                    if ('ImageCapture' in window) {
-                        const captureDevice = new ImageCapture(videoTrack);
-                        const photoCapabilities = await captureDevice.getPhotoCapabilities();
-                        if (photoCapabilities.fillLightMode && photoCapabilities.fillLightMode.includes('flash')) {
-                            await videoTrack.applyConstraints({
-                                advanced: [{ fillLightMode: "flash" }, { torch: true }]
-                            });
-                            nativeFlashTriggered = true;
-                        }
-                    }
-                } catch (e) {
-                    try {
-                        await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
-                        nativeFlashTriggered = true;
-                    } catch(legacyErr){}
-                }
-            }
-        
+        async function captureFrameToBuffer() {
             if (flashEnabled) {
                 flashLayer.classList.add('active');
-                setTimeout(() => flashLayer.classList.remove('active'), 400);
+                setTimeout(() => flashLayer.classList.remove('active'), 250);
+                await new Promise(r => setTimeout(r, 200));
             }
-        
-            setTimeout(async () => {
-                const ctx = canvas.getContext('2d');
-        
-                const displayWidth = video.clientWidth;
-                const displayHeight = video.clientHeight;
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            const displayWidth = video.clientWidth;
+            const displayHeight = video.clientHeight;
+            tempCanvas.width = displayWidth * 2;
+            tempCanvas.height = displayHeight * 2;
+            const vWidth = video.videoWidth || 640;
+            const vHeight = video.videoHeight || 480;
+            const targetAspect = displayWidth / displayHeight;
+            const videoAspect = vWidth / vHeight;
+            let sX, sY, sWidth, sHeight;
+            if (videoAspect > targetAspect) {
+                sHeight = vHeight; sWidth = vHeight * targetAspect;
+                sX = (vWidth - sWidth) / 2; sY = 0;
+            } else {
+                sWidth = vWidth; sHeight = vWidth / targetAspect;
+                sX = 0; sY = (vHeight - sHeight) / 2;
+            }
+            if (useFacingMode === "user") {
+                tempCtx.translate(tempCanvas.width, 0);
+                tempCtx.scale(-1, 1);
+            }
+            tempCtx.filter = video.style.filter;
+            tempCtx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, tempCanvas.width, tempCanvas.height);
+            if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
+                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+                tempCtx.fillStyle = lightLayer.style.backgroundColor;
+                tempCtx.globalCompositeOperation = "overlay";
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            }
+            return tempCanvas;
+        }
+
+        function downloadCanvasImage(targetCanvas, filename) {
+            const dataURL = targetCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+
+            try {
+                link.click();
+            } catch (error) {
+                window.open(dataURL, '_blank');
+            } finally {
+                link.remove();
+            }
+        }
+
+        function compilePhotoStrip(imagesArray) {
+            const ctx = canvas.getContext('2d');
+            const numPics = imagesArray.length;
+            const singleW = video.clientWidth * 2;
+            const singleH = video.clientHeight * 2;
+            
+            const margin = 24; 
+            const frameStyle = frameSelect.value;
+            
+            let topGap = margin;
+            let bottomGap = (numPics > 1) ? 140 : 80;
+            
+            // Custom framing dimensions based on selected template
+            if (frameStyle === 'magazine' && numPics === 1) {
+                topGap = 80;
+                bottomGap = 30;
+            } else if ((frameStyle === 'classic' || frameStyle === 'playful') && numPics === 1) {
+                bottomGap = 110; // Extra room for the polaroid chin / styling properties
+            }
+
+            // Assign canvas size FIRST so sizing variables can calculate properly
+            canvas.width = singleW + (margin * 2);
+            canvas.height = (singleH * numPics) + (margin * (numPics - 1)) + topGap + bottomGap;
+            
+            // Calculate accurate scaling profiles now that dimensions are live
+            const scaleFactor = Math.max(1, Math.min(canvas.width, canvas.height) / 320);
+            const borderSize = Math.max(24, 24 * scaleFactor);
+
+            // Set up default color palette values
+            let frameColor = "#F8C8DC"; 
+            let textColor = "#770737"; 
+            let darkBaseColor = "#301120";
+            
+            if (frameStyle === 'cyber' || frameStyle === 'strip-neon') {
+                frameColor = "#000000"; textColor = "#ff4081";
+            } else if (frameStyle === 'magazine') {
+                frameColor = "#ffffff"; textColor = "#000000";
+            } else if (frameStyle === 'strip-film') {
+                frameColor = "#111111"; textColor = "#ffffff";
+            } else if (frameStyle === 'strip-kawaii') {
+                frameColor = "#ffffff"; textColor = "#ff4081";
+            }
+            
+            // 1. Draw Core Background Frame Base
+            ctx.fillStyle = frameColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 2. Draw the Captured Photos
+            for (let i = 0; i < numPics; i++) {
+                ctx.drawImage(imagesArray[i], margin, topGap + (i * (singleH + margin)), singleW, singleH);
+            }
+            
+            // 3. Apply Detailed Frame Overlay FX Vector Work
+            ctx.textBaseline = "middle"; // Universal text baseline setup
+
+            if (frameStyle === 'classic') {
+                ctx.fillStyle = textColor;
+                ctx.textAlign = "center";
+                ctx.font = `bold ${Math.round(11 * scaleFactor)}px 'Press Start 2P', monospace`;
+                ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomGap / 2));
+            } 
+            else if(frameStyle === 'playful') {
+                const photoX = margin;
+                const photoY = topGap;
+                const totalPhotoH = (singleH * numPics) + (margin * (numPics - 1));
+
+                // 1. Force the solid dark brown base background around the photo area first
+                ctx.fillStyle = darkBaseColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Re-draw background base color frame to clean boundaries
+                ctx.fillStyle = "#F8C8DC";
+                ctx.fillRect(photoX - 12, photoY - 12, singleW + 24, totalPhotoH + 24);
+
+                // 2. Clear out and redraw the photos inside so nothing overlaps our borders
+                for (let i = 0; i < numPics; i++) {
+                    ctx.drawImage(imagesArray[i], margin, topGap + (i * (singleH + margin)), singleW, singleH);
+                }
+
+                // 3. Draw the crisp dark inner line frame right up against the image
+                ctx.strokeStyle = darkBaseColor;
+                ctx.lineWidth = 4 * scaleFactor;
+                ctx.strokeRect(photoX, photoY, singleW, totalPhotoH);
+
+                // 4. DRAW THE DASHES ON TOP OF EVERYTHING
+                ctx.strokeStyle = "#F8C8DC";
+                ctx.lineWidth = 14 * scaleFactor; // Slightly thicker to ensure high visibility
+                ctx.setLineDash([24 * scaleFactor, 16 * scaleFactor]); // Balanced dash profile
                 
-                canvas.width = displayWidth * 2;
-                canvas.height = displayHeight * 2;
-        
-                const vWidth = video.videoWidth;
-                const vHeight = video.videoHeight;
-                const targetAspect = displayWidth / displayHeight;
-                const videoAspect = vWidth / vHeight;
-        
-                let sX, sY, sWidth, sHeight;
-        
-                if (videoAspect > targetAspect) {
-                    sHeight = vHeight;
-                    sWidth = vHeight * targetAspect;
-                    sX = (vWidth - sWidth) / 2;
-                    sY = 0;
-                } else {
-                    sWidth = vWidth;
-                    sHeight = vWidth / targetAspect;
-                    sX = 0;
-                    sY = (vHeight - sHeight) / 2;
-                }
-        
-                if (useFacingMode === "user") {
-                    ctx.translate(canvas.width, 0);
-                    ctx.scale(-1, 1);
-                }
+                // Track path offset accurately to keep dashes visible over the dark base background
+                ctx.strokeRect(
+                    photoX - (ctx.lineWidth / 2) - (2 * scaleFactor), 
+                    photoY - (ctx.lineWidth / 2) - (2 * scaleFactor), 
+                    singleW + ctx.lineWidth + (4 * scaleFactor), 
+                    totalPhotoH + ctx.lineWidth + (4 * scaleFactor)
+                );
+                ctx.setLineDash([]); // Reset line dash immediately so it doesn't break other elements
+
+                // 5. Draw the "♥︎ CUTE ♥︎" sticker badge inside the top-left corner
+                const boxX = photoX + (16 * scaleFactor);
+                const boxY = photoY + (16 * scaleFactor);
+                const boxW = 110 * scaleFactor;
+                const boxH = 32 * scaleFactor;
+
+                ctx.fillStyle = darkBaseColor;
+                ctx.fillRect(boxX, boxY, boxW, boxH);
+                        
+                ctx.fillStyle = "#F8C8DC";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
+                        
+                ctx.fillText("♥︎  CUTE  ♥︎", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
+            } 
+            else if (frameStyle === 'cyber') {
+                // 1. Calculate precise spacing to match the UI preview box
+                const framePadding = 24 * scaleFactor; // Outer space to show the polka dots
+                const tripleBorderThickness = 16 * scaleFactor; // Thickness of the neon frame rings
                 
-                ctx.filter = video.style.filter;
-                ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-                
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.filter = "none";
-        
-                if (nativeFlashTriggered && videoTrack) {
-                    try {
-                        await videoTrack.applyConstraints({
-                            advanced: [{ fillLightMode: "off" }, { torch: false }]
-                        });
-                    } catch(err) {}
-                }
-        
-                if (lightLayer.style.backgroundColor !== "transparent" && lightLayer.style.backgroundColor !== "") {
-                    ctx.fillStyle = lightLayer.style.backgroundColor;
-                    ctx.globalCompositeOperation = "overlay";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.globalCompositeOperation = "source-over";
-                }
-        
-                if (userCustomImgSrc) {
-                    const customImg = new Image();
-                    customImg.onload = function() {
-                        ctx.drawImage(customImg, 0, 0, canvas.width, canvas.height);
-                        executeDownload();
-                    };
-                    customImg.src = userCustomImgSrc;
-                    return; 
-                }
-        
-                const frameStyle = frameSelect.value;
-                if(frameStyle !== 'none') {
-                    const scaleFactor = canvas.width / displayWidth;
-                    const borderSize = 16 * scaleFactor;
-                    
-                    ctx.setTransform(1, 0, 0, 1, 0, 0); 
-                    
-                    ctx.lineWidth = borderSize;
-                    ctx.strokeStyle = "#F8C8DC"; 
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-        
-                    if(frameStyle === 'classic') {
-                        const bottomBorderSize = 50 * scaleFactor;
-                        ctx.strokeRect(borderSize/2, borderSize/2, canvas.width - borderSize, canvas.height - borderSize);
-                        ctx.fillStyle = "#F8C8DC";
-                        ctx.fillRect(0, canvas.height - bottomBorderSize, canvas.width, bottomBorderSize);
-                        ctx.fillStyle = "#770737";
-                        ctx.font = `bold ${Math.round(10 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        
-                        ctx.fillText("• PURITY •", canvas.width / 2, canvas.height - (bottomBorderSize / 2));
-                    } 
-                    else if(frameStyle === 'playful') {
-                        ctx.lineWidth = 12 * scaleFactor;
-                        ctx.setLineDash([20 * scaleFactor, 20 * scaleFactor]);
-                        ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
-                        ctx.setLineDash([]); 
-        
-                        const boxX = 20 * scaleFactor;
-                        const boxY = 20 * scaleFactor;
-                        const boxW = 130 * scaleFactor;
-                        const boxH = 36 * scaleFactor;
-        
-                        ctx.fillStyle = "#770737";
-                        ctx.fillRect(boxX, boxY, boxW, boxH);
-                        
-                        ctx.fillStyle = "#F8C8DC";
-                        ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        
-                        ctx.fillText("♥︎  CUTE  ♥︎", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
-                    } 
-                    else if(frameStyle === 'cyber') {
-                        ctx.lineWidth = 8 * scaleFactor;
-                        ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, canvas.width - ctx.lineWidth, canvas.height - ctx.lineWidth);
-                        
-                        const boxW = 190 * scaleFactor;
-                        const boxH = 32 * scaleFactor;
-                        const boxX = canvas.width - boxW - (20 * scaleFactor);
-                        const boxY = canvas.height - boxH - (20 * scaleFactor);
-        
-                        ctx.fillStyle = "#000000";
-                        ctx.fillRect(boxX, boxY, boxW, boxH);
-                        
-                        ctx.fillStyle = "#ff4081";
-                        ctx.font = `${Math.round(8 * scaleFactor)}px 'Press Start 2P', monospace`;
-                        
-                        ctx.fillText("[ INSERT COIN ]", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
+                // Recalculate full dimensions so the canvas fits exactly with no awkward extra empty spaces
+                canvas.width = singleW + (framePadding * 2) + (tripleBorderThickness * 2);
+                canvas.height = (singleH * numPics) + (margin * (numPics - 1)) + (framePadding * 2) + (tripleBorderThickness * 2);
+
+                // 2. Base Dark Purple Cabinet Layer
+                ctx.fillStyle = darkBaseColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 3. Perfect Polka Dot Grid Background
+                ctx.fillStyle = "rgba(248, 200, 220, 0.18)";
+                const dotSpacing = 24 * scaleFactor;
+                const dotRadius = 3 * scaleFactor;
+                for (let x = dotSpacing / 2; x < canvas.width; x += dotSpacing) {
+                    for (let y = dotSpacing / 2; y < canvas.height; y += dotSpacing) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+                        ctx.fill();
                     }
                 }
-        
-                executeDownload();
-        
-                function executeDownload() {
-                    const dataURL = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.download = `pixel_booth_${Date.now()}.png`;
-                    link.href = dataURL;
-                    link.click();
+
+                // 4. Determine coordinates for the outermost frame box ring
+                const outerX = framePadding;
+                const outerY = framePadding;
+                const outerW = canvas.width - (framePadding * 2);
+                const outerH = canvas.height - (framePadding * 2);
+
+                // Ring 1: Outer Light Pink Line
+                ctx.strokeStyle = "#F8C8DC";
+                ctx.lineWidth = 4 * scaleFactor;
+                ctx.strokeRect(outerX, outerY, outerW, outerH);
+
+                // Ring 2: Solid Black Middle Container Fill Block
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(outerX + (2 * scaleFactor), outerY + (2 * scaleFactor), outerW - (4 * scaleFactor), outerH - (4 * scaleFactor));
+
+                // Ring 3: Inner Hot Pink / Neon Accent Line
+                ctx.strokeStyle = "#ff4081";
+                ctx.lineWidth = 4 * scaleFactor;
+                const innerOffset = 10 * scaleFactor;
+                ctx.strokeRect(outerX + innerOffset, outerY + innerOffset, outerW - (innerOffset * 2), outerH - (innerOffset * 2));
+
+                // 5. Draw Captured Images flawlessly positioned inside the neon boundaries
+                const photoX = outerX + innerOffset + (4 * scaleFactor);
+                const photoY = outerY + innerOffset + (4 * scaleFactor);
+                
+                for (let i = 0; i < numPics; i++) {
+                    const currentY = photoY + (i * (singleH + margin));
+                    ctx.drawImage(imagesArray[i], photoX, currentY, singleW, singleH);
+                    
+                    // Draw a crisp dark line border directly wrapping the image canvas
+                    ctx.strokeStyle = darkBaseColor;
+                    ctx.lineWidth = 2 * scaleFactor;
+                    ctx.strokeRect(photoX, currentY, singleW, singleH);
                 }
-        
-            }, flashEnabled ? 350 : 50);
+
+                // 6. Draw the " [ INSERT COIN ] " floating text badge cleanly in the lower right corner
+                const boxW = 160 * scaleFactor;
+                const boxH = 30 * scaleFactor;
+                const boxX = photoX + singleW - boxW - (16 * scaleFactor);
+                const boxY = photoY + ((singleH * numPics) + (margin * (numPics - 1))) - boxH - (16 * scaleFactor);
+
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(boxX, boxY, boxW, boxH);
+                        
+                ctx.fillStyle = "#ff4081";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.font = `${Math.round(7 * scaleFactor)}px 'Press Start 2P', monospace`;
+                        
+                ctx.fillText("[ INSERT COIN ]", boxX + (boxW / 2), boxY + (boxH / 2) + (1 * scaleFactor));
+            }
+            else if (frameStyle === 'strip-film') {
+                ctx.fillStyle = "#ffffff";
+                for (let h = 10; h < canvas.height; h += 40) {
+                    ctx.fillRect(6, h, 10, 18); 
+                    ctx.fillRect(canvas.width - 16, h, 10, 18);
+                }
+            } else if (frameStyle === 'strip-kawaii') {
+                ctx.strokeStyle = "#ff4081";
+                ctx.lineWidth = 6;
+                ctx.setLineDash([8, 8]);
+                ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+                ctx.setLineDash([]);
+            } else if (frameStyle === 'strip-neon') {
+                ctx.strokeStyle = "#ff4081";
+                ctx.lineWidth = 12;
+                ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+            }
+            
+            // Handle user custom graphic templates if uploaded
+            if (userCustomImgSrc) {
+                const customImg = new Image();
+                customImg.onload = function() {
+                    ctx.drawImage(customImg, 0, 0, canvas.width, canvas.height);
+                    executeDownload();
+                };
+                customImg.src = userCustomImgSrc;
+                return;
+            }
+            
+            // 4. Draw Typography Labels onto Strip Strips
+            if (frameStyle !== 'none' && frameStyle !== 'classic' && frameStyle !== 'playful' && frameStyle !== 'cyber') { 
+                ctx.fillStyle = textColor; 
+                
+                if (frameStyle === 'strip-classic') {
+                    ctx.textAlign = "center";
+                    ctx.font = `bold ${Math.round(24)}px 'Press Start 2P', monospace`;
+                    ctx.fillText("• PURITY MEMORIES •", canvas.width / 2, canvas.height - (bottomGap / 2));
+                } else if (frameStyle === 'strip-neon') {
+                    ctx.textAlign = "center";
+                    ctx.font = `${Math.round(20)}px 'Press Start 2P', monospace`;
+                    ctx.fillText("[ SYSTEM PLAY / READY ]", canvas.width / 2, canvas.height - (bottomGap / 2));
+                } else if (frameStyle === 'magazine') {
+                    ctx.textAlign = "left";
+                    ctx.font = `bold ${Math.round(22)}px 'Press Start 2P', monospace`;
+                    ctx.fillText("ISSUE #01", margin + 10, topGap / 2);
+                } else if (frameStyle === 'strip-film') {
+                    ctx.textAlign = "center";
+                    ctx.font = `${Math.round(20)}px 'Press Start 2P', monospace`;
+                    ctx.fillText("🎞️ DIRECTORS CUT", canvas.width / 2, canvas.height - (bottomGap / 2));
+                }
+            }
+            
+            executeDownload();
+
+            function executeDownload() {
+                downloadCanvasImage(canvas, `pixi_strip_${Date.now()}.png`);
+            }
         }
         
-        window.addEventListener('load', initCamera);
+        updateFrameDropdown();
+        window.addEventListener('load', () => {
+            console.info('Camera will start after you click START CAMERA.');
+        });
+
+        const customArrow = document.getElementById('custom-arrow');
+        const customPointer = document.getElementById('custom-pointer');
+
+        if (customArrow && customPointer) {
+            customArrow.style.display = 'none';
+            customPointer.style.display = 'none';
+        }
     </script>
 </body>
 </html>
